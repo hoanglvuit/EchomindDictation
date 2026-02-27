@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="English Listening Dictation Practice">
+    <title>English Listening Dictation</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+
+<body>
+
+    <div class="header">
+        <h1>🎧 English <span>Listening</span> Dictation</h1>
+    </div>
+
+    <div class="container">
+
+        <!-- Home Section -->
+        <div id="home-section">
+            <div class="card" id="sessions-card" style="display:none;">
+                <h2 class="card-title">📂 Past Sessions</h2>
+                <div id="sessions-list" class="sessions-list"></div>
+            </div>
+            <div class="card" id="upload-card">
+                <h2 class="card-title">📤 Upload New Audio</h2>
+                <div class="upload-area" id="upload-area">
+                    <div class="upload-icon">📁</div>
+                    <p>Drop audio file here or click to select</p>
+                    <p style="font-size:0.8rem; color:#a0aec0;">MP3, WAV, FLAC, etc.</p>
+                    <div class="file-name" id="file-name"></div>
+                    <input type="file" class="file-input" id="file-input" accept="audio/*">
+                </div>
+                <div class="upload-btn-row" style="text-align:center;">
+                    <button class="btn btn-primary" id="upload-btn" disabled>⬆ Upload &amp; Process</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Loading -->
+        <div class="card loading-section" id="loading-section">
+            <div class="spinner"></div>
+            <p id="loading-text">Processing audio...</p>
+            <p style="font-size:0.8rem; color:#a0aec0; margin-top:4px;" id="loading-sub">
+                VAD segmentation &amp; ASR transcription in progress
+            </p>
+        </div>
+
+        <!-- Exercise -->
+        <div class="exercise-section" id="exercise-section">
+            <div class="card">
+                <!-- Back button + Session name -->
+                <div class="exercise-header">
+                    <button class="btn btn-back" id="back-btn" title="Back to Home">← Back</button>
+                    <div class="session-name-badge" id="session-name-badge"></div>
+                </div>
+
+                <!-- Progress -->
+                <div class="progress-bar-container">
+                    <span class="progress-text" id="progress-text">1 / 1</span>
+                    <div class="progress-track">
+                        <div class="progress-fill" id="progress-fill"></div>
+                    </div>
+                </div>
+
+                <!-- Time badge -->
+                <div class="time-badge">
+                    <span id="time-badge">00:00 → 00:00</span>
+                </div>
+
+                <!-- Audio -->
+                <div class="audio-controls">
+                    <button class="btn btn-play" id="play-btn">▶ Play</button>
+                    <span class="shortcut-hint">or press <kbd>Ctrl</kbd></span>
+                </div>
+
+                <!-- Input -->
+                <div class="input-group">
+                    <label for="transcript-input">Type what you hear:</label>
+                    <input type="text" class="transcript-input" id="transcript-input"
+                        placeholder="Type the sentence here..." autocomplete="off">
+                </div>
+
+                <!-- Actions -->
+                <div class="action-row" id="action-row">
+                    <button class="btn btn-submit" id="submit-btn">✓ Submit</button>
+                    <button class="btn btn-skip" id="skip-btn">Skip →</button>
+                </div>
+
+                <!-- Result -->
+                <div class="result-feedback" id="result-feedback"></div>
+
+                <!-- Prefix hint -->
+                <div class="prefix-display" id="prefix-display" style="display:none;"></div>
+
+                <!-- Hint buttons (after wrong) -->
+                <div class="hint-row" id="hint-row" style="display:none;">
+                    <button class="btn btn-answer" id="answer-btn">👁 Show Answer</button>
+                    <button class="btn btn-skip" id="next-btn">Next →</button>
+                </div>
+
+                <!-- Answer -->
+                <div class="answer-display" id="answer-display" style="display:none;"></div>
+            </div>
+        </div>
+
+        <!-- Completion -->
+        <div class="card completion-section" id="completion-section">
+            <div class="completion-icon">🎉</div>
+            <h2>Session Complete!</h2>
+            <div class="stats">
+                <div class="stat-item">
+                    <div class="stat-value correct-val" id="stat-correct">0</div>
+                    <div class="stat-label">Correct</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value incorrect-val" id="stat-incorrect">0</div>
+                    <div class="stat-label">Incorrect</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value skip-val" id="stat-skipped">0</div>
+                    <div class="stat-label">Skipped</div>
+                </div>
+            </div>
+            <button class="btn btn-primary" id="restart-btn">↻ Back to Home</button>
+        </div>
+
+    </div>
+
+    <script>
+        // State
+        let sessionName = null;
+        let totalSegments = 0;
+        let currentIdx = 0;
+        let stats = { correct: 0, incorrect: 0, skipped: 0 };
+        let currentAudio = null;
+        let answeredCorrectly = false;
+
+        // DOM
+        const homeSection = document.getElementById('home-section');
+        const sessionsCard = document.getElementById('sessions-card');
+        const sessionsList = document.getElementById('sessions-list');
+        const uploadArea = document.getElementById('upload-area');
+        const fileInput = document.getElementById('file-input');
+        const fileName = document.getElementById('file-name');
+        const uploadBtn = document.getElementById('upload-btn');
+        const loadingSection = document.getElementById('loading-section');
+        const loadingText = document.getElementById('loading-text');
+        const loadingSub = document.getElementById('loading-sub');
+        const exerciseSection = document.getElementById('exercise-section');
+        const sessionNameBadge = document.getElementById('session-name-badge');
+        const progressText = document.getElementById('progress-text');
+        const progressFill = document.getElementById('progress-fill');
+        const timeBadge = document.getElementById('time-badge');
+        const playBtn = document.getElementById('play-btn');
+        const transcriptInput = document.getElementById('transcript-input');
+        const actionRow = document.getElementById('action-row');
+        const submitBtn = document.getElementById('submit-btn');
+        const skipBtn = document.getElementById('skip-btn');
+        const resultFeedback = document.getElementById('result-feedback');
+        const prefixDisplay = document.getElementById('prefix-display');
+        const hintRow = document.getElementById('hint-row');
+        const answerBtn = document.getElementById('answer-btn');
+        const nextBtn = document.getElementById('next-btn');
+        const answerDisplay = document.getElementById('answer-display');
+        const backBtn = document.getElementById('back-btn');
+        const completionSection = document.getElementById('completion-section');
+        const statCorrect = document.getElementById('stat-correct');
+        const statIncorrect = document.getElementById('stat-incorrect');
+        const statSkipped = document.getElementById('stat-skipped');
+        const restartBtn = document.getElementById('restart-btn');
+
+        // ---- Global keyboard shortcuts ----
+        document.addEventListener('keydown', (e) => {
+            // Ctrl = play audio
+            if (e.key === 'Control' && !e.altKey && !e.shiftKey && !e.metaKey) {
+                if (exerciseSection.style.display !== 'none' && currentAudio) {
+                    playAudio();
+                }
+            }
+            // Enter = submit OR advance after correct
+            if (e.key === 'Enter' && exerciseSection.style.display !== 'none') {
+                if (answeredCorrectly) {
+                    nextSegment();
+                }
+            }
+        });
+
+        // ---- Enter on input for submit ----
+        transcriptInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && !answeredCorrectly && !submitBtn.disabled) {
+                checkAnswer();
+            }
+        });
+
+        // ---- Load past sessions ----
+        async function loadSessions() {
+            try {
+                const resp = await fetch('/sessions');
+                const data = await resp.json();
+                if (data.sessions && data.sessions.length > 0) {
+                    sessionsCard.style.display = 'block';
+                    sessionsList.innerHTML = '';
+                    data.sessions.forEach(s => {
+                        const item = document.createElement('div');
+                        item.className = 'session-item';
+                        item.innerHTML = `
+                    <div class="session-info">
+                        <div class="session-item-name">${s.original_filename}</div>
+                        <div class="session-item-meta">${s.segment_count} segments · ${s.created_at.split('T')[0]}</div>
+                    </div>
+                    <button class="btn btn-secondary btn-sm">Practice</button>
+                `;
+                        item.querySelector('button').addEventListener('click', () => startSession(s.name, 'load'));
+                        sessionsList.appendChild(item);
+                    });
+                } else {
+                    sessionsCard.style.display = 'none';
+                }
+            } catch (e) {
+                console.error('Failed to load sessions:', e);
+            }
+        }
+
+        async function startSession(name, mode) {
+            homeSection.style.display = 'none';
+            loadingSection.style.display = 'block';
+            loadingText.textContent = mode === 'load' ? 'Loading session...' : 'Processing audio...';
+            loadingSub.textContent = mode === 'load' ? '' : 'VAD segmentation & ASR transcription in progress';
+
+            try {
+                let url, opts;
+                if (mode === 'load') {
+                    url = `/load/${encodeURIComponent(name)}`;
+                    opts = {};
+                } else {
+                    // mode === 'upload' handled separately
+                    return;
+                }
+                const resp = await fetch(url);
+                const data = await resp.json();
+                if (data.error) { alert('Error: ' + data.error); goHome(); return; }
+                beginExercise(data.session_name, data.total);
+            } catch (err) {
+                alert('Load failed: ' + err.message);
+                goHome();
+            }
+        }
+
+        function beginExercise(name, total) {
+            sessionName = name;
+            totalSegments = total;
+            currentIdx = 0;
+            stats = { correct: 0, incorrect: 0, skipped: 0 };
+            loadingSection.style.display = 'none';
+            exerciseSection.style.display = 'block';
+            sessionNameBadge.textContent = `📁 ${sessionName}`;
+            loadCurrentSegment();
+        }
+
+        function goHome() {
+            exerciseSection.style.display = 'none';
+            completionSection.style.display = 'none';
+            loadingSection.style.display = 'none';
+            homeSection.style.display = 'block';
+            if (currentAudio) { currentAudio.pause(); currentAudio = null; }
+            fileInput.value = '';
+            fileName.textContent = '';
+            uploadBtn.disabled = true;
+            loadSessions();
+        }
+
+        loadSessions();
+
+        // ---- Upload ----
+        uploadArea.addEventListener('click', () => fileInput.click());
+        uploadArea.addEventListener('dragover', (e) => { e.preventDefault(); uploadArea.classList.add('dragover'); });
+        uploadArea.addEventListener('dragleave', () => uploadArea.classList.remove('dragover'));
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault(); uploadArea.classList.remove('dragover');
+            if (e.dataTransfer.files.length > 0) { fileInput.files = e.dataTransfer.files; onFileSelected(); }
+        });
+        fileInput.addEventListener('change', onFileSelected);
+
+        function onFileSelected() {
+            if (fileInput.files.length > 0) { fileName.textContent = fileInput.files[0].name; uploadBtn.disabled = false; }
+        }
+
+        uploadBtn.addEventListener('click', async () => {
+            if (!fileInput.files.length) return;
+            homeSection.style.display = 'none';
+            loadingSection.style.display = 'block';
+            loadingText.textContent = 'Processing audio...';
+            loadingSub.textContent = 'Loading models & running VAD + ASR...';
+
+            const formData = new FormData();
+            formData.append('audio', fileInput.files[0]);
+
+            try {
+                const resp = await fetch('/upload', { method: 'POST', body: formData });
+                const data = await resp.json();
+                if (data.error) { alert('Error: ' + data.error); goHome(); return; }
+                if (data.total === 0) { alert('No speech segments detected.'); goHome(); return; }
+                beginExercise(data.session_name, data.total);
+            } catch (err) {
+                alert('Upload failed: ' + err.message);
+                goHome();
+            }
+        });
+
+        // ---- Exercise ----
+        async function loadCurrentSegment() {
+            try {
+                const resp = await fetch(`/segment/${encodeURIComponent(sessionName)}/${currentIdx}`);
+                const seg = await resp.json();
+                if (seg.error) { alert('Error: ' + seg.error); return; }
+
+                progressText.textContent = `${currentIdx + 1} / ${totalSegments}`;
+                progressFill.style.width = `${((currentIdx + 1) / totalSegments) * 100}%`;
+                timeBadge.textContent = `${seg.start_time} → ${seg.end_time}`;
+
+                transcriptInput.value = '';
+                transcriptInput.className = 'transcript-input';
+                transcriptInput.disabled = false;
+                transcriptInput.focus();
+                answeredCorrectly = false;
+
+                resultFeedback.style.display = 'none';
+                resultFeedback.className = 'result-feedback';
+                prefixDisplay.style.display = 'none';
+                hintRow.style.display = 'none';
+                answerDisplay.style.display = 'none';
+                actionRow.style.display = 'flex';
+                submitBtn.disabled = false;
+
+                if (currentAudio) { currentAudio.pause(); currentAudio = null; }
+                currentAudio = new Audio(seg.audio_url);
+                currentAudio.addEventListener('canplaythrough', () => currentAudio.play(), { once: true });
+            } catch (err) {
+                alert('Failed to load segment: ' + err.message);
+            }
+        }
+
+        function playAudio() {
+            if (currentAudio) { currentAudio.currentTime = 0; currentAudio.play(); }
+        }
+
+        playBtn.addEventListener('click', playAudio);
+        submitBtn.addEventListener('click', checkAnswer);
+
+        async function checkAnswer() {
+            const text = transcriptInput.value.trim();
+            if (!text) { transcriptInput.focus(); return; }
+            submitBtn.disabled = true;
+
+            try {
+                const resp = await fetch('/check', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ session_name: sessionName, segment_id: currentIdx, user_text: text }),
+                });
+                const data = await resp.json();
+
+                if (data.correct) {
+                    stats.correct++;
+                    transcriptInput.classList.remove('incorrect');
+                    transcriptInput.classList.add('correct');
+                    transcriptInput.disabled = true;
+                    resultFeedback.className = 'result-feedback pass';
+                    resultFeedback.innerHTML = '✅ Correct! Press <kbd>Enter</kbd> to continue';
+                    resultFeedback.style.display = 'block';
+                    actionRow.style.display = 'none';
+                    hintRow.style.display = 'none';
+                    prefixDisplay.style.display = 'none';
+                    answerDisplay.innerHTML = `<strong>Answer:</strong> ${data.expected}`;
+                    answerDisplay.style.display = 'block';
+                    answeredCorrectly = true;
+                } else {
+                    transcriptInput.classList.add('incorrect');
+                    resultFeedback.className = 'result-feedback fail';
+                    resultFeedback.innerHTML = '❌ Incorrect — try again!';
+                    resultFeedback.style.display = 'block';
+
+                    if (data.matching_prefix !== undefined) {
+                        const p = data.matching_prefix;
+                        prefixDisplay.innerHTML = p.length > 0
+                            ? `<strong>Hint:</strong> <span class="prefix-text">${p}</span><span class="prefix-cursor">…</span>`
+                            : `<strong>Hint:</strong> <span class="prefix-cursor">…</span> <span style="color:#a0aec0;font-size:0.85rem">(first character is wrong)</span>`;
+                        prefixDisplay.style.display = 'block';
+                    }
+
+                    transcriptInput.disabled = false;
+                    submitBtn.disabled = false;
+                    transcriptInput.focus();
+                    hintRow.style.display = 'flex';
+                }
+            } catch (err) {
+                alert('Check failed: ' + err.message);
+                submitBtn.disabled = false;
+            }
+        }
+
+        // Show Answer
+        answerBtn.addEventListener('click', async () => {
+            answerBtn.disabled = true;
+            try {
+                const resp = await fetch('/answer', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ session_name: sessionName, segment_id: currentIdx }),
+                });
+                const data = await resp.json();
+                answerDisplay.innerHTML = `<strong>Answer:</strong> ${data.expected}`;
+                answerDisplay.style.display = 'block';
+            } catch (err) { alert('Failed: ' + err.message); }
+            answerBtn.disabled = false;
+        });
+
+        // Next (after wrong)
+        nextBtn.addEventListener('click', () => { stats.incorrect++; nextSegment(); });
+
+        // Skip
+        skipBtn.addEventListener('click', () => { stats.skipped++; nextSegment(); });
+
+        // Back to home
+        backBtn.addEventListener('click', goHome);
+        restartBtn.addEventListener('click', goHome);
+
+        function nextSegment() {
+            currentIdx++;
+            if (currentIdx >= totalSegments) showCompletion();
+            else loadCurrentSegment();
+        }
+
+        function showCompletion() {
+            exerciseSection.style.display = 'none';
+            completionSection.style.display = 'block';
+            statCorrect.textContent = stats.correct;
+            statIncorrect.textContent = stats.incorrect;
+            statSkipped.textContent = stats.skipped;
+            if (currentAudio) { currentAudio.pause(); currentAudio = null; }
+        }
+    </script>
+
+</body>
+
+</html>
