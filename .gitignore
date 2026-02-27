@@ -1,5 +1,9 @@
 .venv/ 
 .mypy_cache/
-English Listening & Shadowing Practice_ Real Daily Conversations! English Podcast EP 119.mp3
-sherpa-onnx-whisper-distil-small.en/
-sessions/
+__pycache__/
+backend/sessions/
+backend/model/
+backend/app.db
+frontend/node_modules/
+*.mp3
+app.db

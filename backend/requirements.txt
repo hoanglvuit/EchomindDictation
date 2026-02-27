@@ -1,4 +1,6 @@
-flask
+fastapi
+uvicorn[standard]
+python-multipart
 numpy
 soundfile
 sherpa-onnx
