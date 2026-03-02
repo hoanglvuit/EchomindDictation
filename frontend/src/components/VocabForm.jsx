@@ -1,11 +1,25 @@
-import { useState } from "react";
-import { saveVocab } from "../api";
+import { useState, useEffect } from "react";
+import { saveVocab, updateVocab } from "../api";
 
-export default function VocabForm({ word, onClose, onSaved }) {
+export default function VocabForm({ word: initialWord, vocab, onClose, onSaved }) {
+    const [word, setWord] = useState(typeof initialWord === "string" ? initialWord : "");
     const [pronunciation, setPronunciation] = useState("");
     const [definitions, setDefinitions] = useState([{ definition: "", example: "" }]);
     const [saving, setSaving] = useState(false);
     const [saved, setSaved] = useState(false);
+
+    useEffect(() => {
+        if (vocab) {
+            setWord(vocab.word || "");
+            setPronunciation(vocab.pronunciation || "");
+            if (vocab.definitions && vocab.definitions.length > 0) {
+                setDefinitions(vocab.definitions.map(d => ({
+                    definition: d.definition || "",
+                    example: d.example || ""
+                })));
+            }
+        }
+    }, [vocab]);
 
     const updateDef = (index, field, value) => {
         setDefinitions((prev) => prev.map((d, i) => (i === index ? { ...d, [field]: value } : d)));
@@ -19,6 +33,10 @@ export default function VocabForm({ word, onClose, onSaved }) {
     };
 
     const handleSave = async () => {
+        if (!word.trim()) {
+            alert("Please enter a word.");
+            return;
+        }
         const validDefs = definitions.filter((d) => d.definition.trim() || d.example.trim());
         if (!validDefs.length && !pronunciation.trim()) {
             alert("Please fill in at least one field.");
@@ -26,9 +44,13 @@ export default function VocabForm({ word, onClose, onSaved }) {
         }
         setSaving(true);
         try {
-            await saveVocab(word, pronunciation, validDefs.length ? validDefs : definitions);
+            if (vocab && vocab.id) {
+                await updateVocab(vocab.id, word.trim(), pronunciation, validDefs.length ? validDefs : definitions);
+            } else {
+                await saveVocab(word.trim(), pronunciation, validDefs.length ? validDefs : definitions);
+            }
             setSaved(true);
-            setTimeout(() => onSaved(), 1200);
+            setTimeout(() => onSaved(), 800);
         } catch (err) {
             alert("Save failed: " + err.message);
         } finally {
@@ -39,13 +61,20 @@ export default function VocabForm({ word, onClose, onSaved }) {
     return (
         <div className="glass-card p-5 animate-slide-up">
             <div className="flex items-center justify-between mb-4">
-                <div>
-                    <div className="text-xs text-slate-400 font-medium">Save Vocabulary</div>
-                    <div className="text-xl font-bold text-indigo-600 mt-0.5">{word}</div>
+                <div className="flex-1">
+                    <div className="text-xs text-slate-400 font-medium mb-1">Save Vocabulary</div>
+                    <input
+                        type="text"
+                        value={word}
+                        onChange={(e) => setWord(e.target.value)}
+                        className="text-xl font-bold text-indigo-600 bg-transparent border-b-2 border-dashed border-indigo-200
+              hover:border-indigo-400 focus:border-indigo-500 transition-all outline-none w-full py-0.5"
+                        spellCheck="false"
+                    />
                 </div>
                 <button onClick={onClose}
                     className="w-8 h-8 rounded-lg bg-slate-100 text-slate-400 hover:text-rose-500 hover:bg-rose-50
-            flex items-center justify-center transition-all cursor-pointer text-lg"
+            flex items-center justify-center transition-all cursor-pointer text-lg ml-3"
                 >×</button>
             </div>
 

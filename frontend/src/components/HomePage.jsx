@@ -1,22 +1,34 @@
 import { useState, useRef } from "react";
-import { uploadAudio } from "../api";
+import { uploadAudio, loadSession, deleteSession } from "../api";
 
 export default function HomePage({ sessions, onStartSession, onRefresh, onOpenVocab }) {
     const [file, setFile] = useState(null);
     const [uploading, setUploading] = useState(false);
     const [dragOver, setDragOver] = useState(false);
+    const [vadParams, setVadParams] = useState({ max: 1.0, min: 0.01, k: 2.0, t0: 2.5, threshold: 0.25 });
+    const [showAdvanced, setShowAdvanced] = useState(false);
     const inputRef = useRef(null);
+
+    const handleDelete = async (name) => {
+        if (!confirm(`Are you sure you want to delete session "${name}"?`)) return;
+        try {
+            await deleteSession(name);
+            onRefresh();
+        } catch (err) {
+            alert("Delete failed: " + err.message);
+        }
+    };
 
     const handleUpload = async () => {
         if (!file) return;
         setUploading(true);
         try {
-            const data = await uploadAudio(file);
+            const data = await uploadAudio(file, vadParams);
             if (data.total === 0) {
                 alert("No speech segments detected.");
                 return;
             }
-            onStartSession(data.session_name, data.total);
+            onStartSession(data.session_name, data.total, 0);
         } catch (err) {
             alert("Upload failed: " + err.message);
         } finally {
@@ -66,18 +78,42 @@ export default function HomePage({ sessions, onStartSession, onRefresh, onOpenVo
                                     <div className="text-sm font-medium text-slate-700 truncate">
                                         {s.original_filename}
                                     </div>
-                                    <div className="text-xs text-slate-400 mt-0.5">
-                                        {s.segment_count} segments ·{" "}
-                                        {s.created_at?.split("T")[0]}
+                                    <div className="text-xs text-slate-400 mt-0.5 flex items-center gap-2">
+                                        <span>{s.segment_count} segments · {s.created_at?.split("T")[0]}</span>
+                                        {s.progress > 0 && s.progress < s.segment_count && (
+                                            <span className="px-1.5 py-0.5 rounded-full bg-indigo-100 text-indigo-600 text-[10px] font-semibold">
+                                                ▶ {s.progress}/{s.segment_count}
+                                            </span>
+                                        )}
+                                        {s.progress >= s.segment_count && s.segment_count > 0 && (
+                                            <span className="px-1.5 py-0.5 rounded-full bg-emerald-100 text-emerald-600 text-[10px] font-semibold">
+                                                ✓ Done
+                                            </span>
+                                        )}
                                     </div>
                                 </div>
                                 <button
-                                    onClick={() => onStartSession(s.name, s.segment_count)}
+                                    onClick={async () => {
+                                        try {
+                                            const data = await loadSession(s.name);
+                                            onStartSession(s.name, s.segment_count, data.progress || 0);
+                                        } catch {
+                                            onStartSession(s.name, s.segment_count, 0);
+                                        }
+                                    }}
                                     className="ml-3 px-4 py-1.5 rounded-lg text-sm font-medium
                     bg-indigo-500/10 text-indigo-600 hover:bg-indigo-500 hover:text-white
                     transition-all duration-200 cursor-pointer whitespace-nowrap"
                                 >
                                     Practice →
+                                </button>
+                                <button
+                                    onClick={() => handleDelete(s.name)}
+                                    className="ml-2 p-2 rounded-lg text-rose-400 hover:bg-rose-50 hover:text-rose-600
+                    transition-all duration-200 cursor-pointer"
+                                    title="Delete session"
+                                >
+                                    🗑️
                                 </button>
                             </div>
                         ))}
@@ -131,6 +167,66 @@ export default function HomePage({ sessions, onStartSession, onRefresh, onOpenVo
                             if (e.target.files.length > 0) setFile(e.target.files[0]);
                         }}
                     />
+                </div>
+
+                {/* VAD Config */}
+                <div className="mt-4">
+                    <button
+                        onClick={() => setShowAdvanced(!showAdvanced)}
+                        className="text-xs text-indigo-500 hover:text-indigo-700 font-medium transition-all mb-2 cursor-pointer"
+                    >
+                        {showAdvanced ? "▾ Hide Advanced VAD Settings" : "▸ Show Advanced VAD Settings"}
+                    </button>
+
+                    {showAdvanced && (
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 p-4 rounded-xl bg-slate-50 border border-slate-100 animate-fade-in">
+                            <div>
+                                <label className="block text-[10px] uppercase tracking-wider text-slate-400 mb-1 font-bold">MAX (Threshold)</label>
+                                <input
+                                    type="number" step="0.1" value={vadParams.max}
+                                    onChange={(e) => setVadParams({ ...vadParams, max: parseFloat(e.target.value) })}
+                                    className="w-full px-2 py-1.5 rounded text-sm border border-slate-200"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-[10px] uppercase tracking-wider text-slate-400 mb-1 font-bold">MIN (Threshold)</label>
+                                <input
+                                    type="number" step="0.01" value={vadParams.min}
+                                    onChange={(e) => setVadParams({ ...vadParams, min: parseFloat(e.target.value) })}
+                                    className="w-full px-2 py-1.5 rounded text-sm border border-slate-200"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-[10px] uppercase tracking-wider text-slate-400 mb-1 font-bold">k (Slope)</label>
+                                <input
+                                    type="number" step="0.5" value={vadParams.k}
+                                    onChange={(e) => setVadParams({ ...vadParams, k: parseFloat(e.target.value) })}
+                                    className="w-full px-2 py-1.5 rounded text-sm border border-slate-200"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-[10px] uppercase tracking-wider text-slate-400 mb-1 font-bold">t0 (Midpoint)</label>
+                                <input
+                                    type="number" step="0.5" value={vadParams.t0}
+                                    onChange={(e) => setVadParams({ ...vadParams, t0: parseFloat(e.target.value) })}
+                                    className="w-full px-2 py-1.5 rounded text-sm border border-slate-200"
+                                />
+                            </div>
+                            <div className="col-span-full mt-2 pt-2 border-t border-slate-100">
+                                <label className="block text-[10px] uppercase tracking-wider text-slate-400 mb-1 font-bold">Speech Threshold (0.0 - 1.0)</label>
+                                <div className="flex items-center gap-3">
+                                    <input
+                                        type="range" min="0.05" max="0.95" step="0.05" value={vadParams.threshold}
+                                        onChange={(e) => setVadParams({ ...vadParams, threshold: parseFloat(e.target.value) })}
+                                        className="flex-1"
+                                    />
+                                    <span className="text-sm font-mono text-indigo-600 font-bold bg-indigo-50 px-2 py-1 rounded min-w-[3rem] text-center">
+                                        {vadParams.threshold.toFixed(2)}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    )}
                 </div>
                 <div className="text-center mt-4">
                     <button

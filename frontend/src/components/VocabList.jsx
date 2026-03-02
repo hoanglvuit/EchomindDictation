@@ -1,10 +1,13 @@
 import { useState, useEffect } from "react";
-import { listVocab, deleteVocab } from "../api";
+import { listVocab, deleteVocab, getVocabPractice } from "../api";
+import VocabForm from "./VocabForm";
 
-export default function VocabList({ onBack }) {
+export default function VocabList({ onBack, onPractice }) {
     const [vocabItems, setVocabItems] = useState([]);
     const [loading, setLoading] = useState(true);
     const [expandedId, setExpandedId] = useState(null);
+    const [dueCount, setDueCount] = useState(0);
+    const [editingVocab, setEditingVocab] = useState(null);
 
     const fetchVocab = async () => {
         try {
@@ -19,6 +22,10 @@ export default function VocabList({ onBack }) {
 
     useEffect(() => {
         fetchVocab();
+        // Fetch due count
+        getVocabPractice()
+            .then((data) => setDueCount(data.total || 0))
+            .catch(() => { });
     }, []);
 
     const handleDelete = async (id) => {
@@ -42,8 +49,23 @@ export default function VocabList({ onBack }) {
                     ← Back to Home
                 </button>
                 <h2 className="text-xl font-bold text-slate-800">📖 My Vocabulary</h2>
-                <div className="text-sm text-slate-400">
-                    {vocabItems.length} word{vocabItems.length !== 1 ? "s" : ""}
+                <div className="flex items-center gap-3">
+                    {dueCount > 0 && (
+                        <button
+                            onClick={onPractice}
+                            className="px-4 py-2 rounded-xl text-sm font-semibold bg-gradient-to-r from-violet-500 to-indigo-500
+                text-white hover:from-violet-600 hover:to-indigo-600 transition-all cursor-pointer
+                flex items-center gap-2 shadow-md shadow-violet-500/20"
+                        >
+                            🧠 Practice
+                            <span className="px-1.5 py-0.5 rounded-full bg-white/20 text-xs font-bold">
+                                {dueCount}
+                            </span>
+                        </button>
+                    )}
+                    <span className="text-sm text-slate-400">
+                        {vocabItems.length} word{vocabItems.length !== 1 ? "s" : ""}
+                    </span>
                 </div>
             </div>
 
@@ -85,9 +107,23 @@ export default function VocabList({ onBack }) {
                                     )}
                                 </div>
                                 <div className="flex items-center gap-2">
-                                    <span className="text-xs text-slate-400">
-                                        {v.created_at?.split("T")[0]}
+                                    <span className={`text-xs px-1.5 py-0.5 rounded-full font-medium ${v.next_review <= new Date().toISOString().split("T")[0]
+                                        ? "bg-emerald-100 text-emerald-600"
+                                        : "bg-slate-100 text-slate-400"
+                                        }`}>
+                                        📅 {v.next_review}
                                     </span>
+                                    <button
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            setEditingVocab(v);
+                                        }}
+                                        className="w-7 h-7 rounded-lg text-slate-400 hover:text-indigo-500 hover:bg-indigo-50
+                      flex items-center justify-center transition-all cursor-pointer text-sm"
+                                        title="Edit"
+                                    >
+                                        ✎
+                                    </button>
                                     <button
                                         onClick={(e) => {
                                             e.stopPropagation();
@@ -129,6 +165,22 @@ export default function VocabList({ onBack }) {
                             )}
                         </div>
                     ))}
+                </div>
+            )}
+
+            {/* Edit Modal */}
+            {editingVocab && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm animate-fade-in">
+                    <div className="w-full max-w-lg shadow-2xl relative">
+                        <VocabForm
+                            vocab={editingVocab}
+                            onClose={() => setEditingVocab(null)}
+                            onSaved={() => {
+                                setEditingVocab(null);
+                                fetchVocab();
+                            }}
+                        />
+                    </div>
                 </div>
             )}
         </div>

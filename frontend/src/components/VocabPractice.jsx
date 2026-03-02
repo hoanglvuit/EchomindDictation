@@ -1,0 +1,239 @@
+import { useState, useEffect, useCallback } from "react";
+import { getVocabPractice, submitVocabPractice } from "../api";
+import MCQQuestion from "./MCQQuestion";
+import SpellingQuestion from "./SpellingQuestion";
+
+export default function VocabPractice({ onBack }) {
+    const [items, setItems] = useState([]);
+    const [currentIdx, setCurrentIdx] = useState(0);
+    const [loading, setLoading] = useState(true);
+    const [results, setResults] = useState([]); // { word, quality, quiz_type }
+    const [finished, setFinished] = useState(false);
+    const [waitingNext, setWaitingNext] = useState(false);
+
+    const fetchPractice = useCallback(async () => {
+        try {
+            setLoading(true);
+            const data = await getVocabPractice();
+            setItems(data.items || []);
+        } catch (err) {
+            console.error("Failed to load practice:", err);
+        } finally {
+            setLoading(false);
+        }
+    }, []);
+
+    useEffect(() => {
+        fetchPractice();
+    }, [fetchPractice]);
+
+    const handleAnswer = async (quality) => {
+        const item = items[currentIdx];
+
+        // Submit SM-2 update to backend
+        try {
+            await submitVocabPractice(item.id, quality);
+        } catch (err) {
+            console.error("Failed to submit:", err);
+        }
+
+        // Record result
+        setResults((prev) => [
+            ...prev,
+            {
+                word: item.word,
+                quality,
+                quiz_type: item.quiz_type,
+            },
+        ]);
+
+        setWaitingNext(true);
+    };
+
+    const goNext = () => {
+        setWaitingNext(false);
+        const next = currentIdx + 1;
+        if (next >= items.length) {
+            setFinished(true);
+        } else {
+            setCurrentIdx(next);
+        }
+    };
+
+    useEffect(() => {
+        const handler = (e) => {
+            if (e.key === "Enter" && waitingNext) {
+                goNext();
+            }
+        };
+        document.addEventListener("keydown", handler);
+        return () => document.removeEventListener("keydown", handler);
+    });
+
+    const current = items[currentIdx];
+    const progressPct = items.length > 0 ? ((currentIdx + 1) / items.length) * 100 : 0;
+
+    // Summary stats
+    const perfect = results.filter((r) => r.quality === 5 || r.quality === 2).length;
+    const partial = results.filter((r) => r.quality === 3 || r.quality === 1).length;
+    const failed = results.filter((r) => r.quality === 0).length;
+
+    // Loading state
+    if (loading) {
+        return (
+            <div className="animate-fade-in max-w-2xl mx-auto pt-6">
+                <div className="glass-card p-12 text-center">
+                    <div className="spinner mx-auto mb-3" />
+                    <p className="text-slate-400 text-sm">Loading practice session...</p>
+                </div>
+            </div>
+        );
+    }
+
+    // No items due
+    if (!loading && items.length === 0) {
+        return (
+            <div className="animate-fade-in max-w-2xl mx-auto pt-6 space-y-4">
+                <button onClick={onBack} className="text-sm text-indigo-500 hover:text-indigo-700 transition-colors cursor-pointer">
+                    ← Back
+                </button>
+                <div className="glass-card p-12 text-center">
+                    <div className="text-5xl mb-4">🎉</div>
+                    <h3 className="text-lg font-semibold text-slate-700 mb-2">
+                        No words due for review!
+                    </h3>
+                    <p className="text-slate-400 text-sm">
+                        All your vocabulary is up to date. Come back tomorrow!
+                    </p>
+                </div>
+            </div>
+        );
+    }
+
+    // Finished state — summary
+    if (finished) {
+        return (
+            <div className="animate-fade-in max-w-2xl mx-auto pt-6 space-y-4">
+                <div className="glass-card p-6 text-center">
+                    <div className="text-5xl mb-4">🏆</div>
+                    <h2 className="text-2xl font-bold text-slate-800 mb-2">
+                        Practice Complete!
+                    </h2>
+                    <p className="text-slate-500 text-sm mb-6">
+                        You reviewed {results.length} word{results.length !== 1 ? "s" : ""} today
+                    </p>
+
+                    {/* Stats */}
+                    <div className="grid grid-cols-3 gap-3 mb-6">
+                        <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-100">
+                            <div className="text-2xl font-bold text-emerald-600">{perfect}</div>
+                            <div className="text-xs text-emerald-500 mt-1">🎉 Perfect</div>
+                        </div>
+                        <div className="p-3 rounded-xl bg-amber-50 border border-amber-100">
+                            <div className="text-2xl font-bold text-amber-600">{partial}</div>
+                            <div className="text-xs text-amber-500 mt-1">✅ Progressing</div>
+                        </div>
+                        <div className="p-3 rounded-xl bg-rose-50 border border-rose-100">
+                            <div className="text-2xl font-bold text-rose-600">{failed}</div>
+                            <div className="text-xs text-rose-500 mt-1">❌ Missed</div>
+                        </div>
+                    </div>
+
+                    {/* Result details */}
+                    <div className="space-y-2 text-left mb-6">
+                        {results.map((r, i) => (
+                            <div
+                                key={i}
+                                className={`flex items-center justify-between px-4 py-2.5 rounded-lg text-sm ${r.quality >= 2
+                                    ? "bg-emerald-50/60 text-emerald-700"
+                                    : r.quality >= 1
+                                        ? "bg-amber-50/60 text-amber-700"
+                                        : "bg-rose-50/60 text-rose-700"
+                                    }`}
+                            >
+                                <span className="font-medium">{r.word}</span>
+                                <div className="flex items-center gap-2">
+                                    <span className="text-xs opacity-60 capitalize">
+                                        {r.quiz_type === "mcq" ? "Multiple Choice" : "Spelling"}
+                                    </span>
+                                    <span>
+                                        {r.quality >= 3 ? "🎉" : (r.quality >= 1 ? "✅" : "❌")}
+                                    </span>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+
+                    <button
+                        onClick={onBack}
+                        className="px-6 py-2.5 rounded-xl text-sm font-semibold bg-gradient-to-r from-indigo-500 to-violet-500
+              text-white hover:from-indigo-600 hover:to-violet-600 transition-all cursor-pointer"
+                    >
+                        ← Back to Vocabulary
+                    </button>
+                </div>
+            </div>
+        );
+    }
+
+    // Active quiz
+    return (
+        <div className="animate-fade-in max-w-2xl mx-auto space-y-4 pt-6">
+            <div className="glass-card p-5">
+                {/* Header */}
+                <div className="flex items-center justify-between mb-4">
+                    <button onClick={onBack} className="text-sm text-indigo-500 hover:text-indigo-700 transition-colors cursor-pointer">
+                        ← Back
+                    </button>
+                    <div className="text-sm text-indigo-600 font-medium">🧠 Vocab Practice</div>
+                </div>
+
+                {/* Progress */}
+                <div className="flex items-center gap-3 mb-5">
+                    <span className="text-xs text-slate-400 font-mono whitespace-nowrap">
+                        {currentIdx + 1} / {items.length}
+                    </span>
+                    <div className="flex-1 h-2 bg-slate-200 rounded-full overflow-hidden">
+                        <div
+                            className="h-full progress-shimmer rounded-full transition-all duration-500"
+                            style={{ width: `${progressPct}%` }}
+                        />
+                    </div>
+                    <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${current?.quiz_type === "mcq"
+                        ? "bg-violet-100 text-violet-600"
+                        : "bg-teal-100 text-teal-600"
+                        }`}>
+                        {current?.quiz_type === "mcq" ? "MCQ" : "Spelling"}
+                    </span>
+                </div>
+
+                {/* Question */}
+                {current && (
+                    <div key={`${current.id}-${currentIdx}`}>
+                        {current.quiz_type === "mcq" ? (
+                            <MCQQuestion item={current} onAnswer={handleAnswer} />
+                        ) : (
+                            <SpellingQuestion item={current} onAnswer={handleAnswer} />
+                        )}
+                    </div>
+                )}
+
+                {/* Next button */}
+                {waitingNext && (
+                    <div className="text-center mt-5 animate-fade-in">
+                        <button
+                            onClick={goNext}
+                            className="px-6 py-2.5 rounded-xl text-sm font-semibold bg-gradient-to-r from-indigo-500 to-violet-500
+                text-white hover:from-indigo-600 hover:to-violet-600 transition-all cursor-pointer"
+                        >
+                            {currentIdx + 1 >= items.length ? "See Results" : "Next →"}
+                        </button>
+                        <div className="text-xs text-slate-400 mt-2">
+                            Press <kbd className="px-1.5 py-0.5 rounded bg-white border border-slate-200">Enter</kbd> to continue
+                        </div>
+                    </div>
+                )}
+            </div>
+        </div>
+    );
+}

@@ -7,8 +7,7 @@ import os
 import re
 import gc
 import tempfile
-from datetime import datetime
-from typing import Optional
+
 
 from contextlib import asynccontextmanager
 
@@ -17,9 +16,17 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
 
-from database import init_db, get_lesson_by_name, create_lesson, list_lessons
+from database import (
+    init_db,
+    get_lesson_by_name,
+    create_lesson,
+    list_lessons,
+    update_lesson_progress,
+    delete_lesson_by_name,
+)
 from database import add_segments, get_segment, get_segment_transcript
-from database import save_vocab, list_vocab, delete_vocab
+from database import save_vocab, list_vocab, delete_vocab, update_vocab
+from database import get_due_vocab, update_vocab_sm2
 
 
 @asynccontextmanager
@@ -78,6 +85,12 @@ class AnswerRequest(BaseModel):
     segment_id: int
 
 
+class HintRequest(BaseModel):
+    session_name: str
+    segment_id: int
+    user_text: str = ""
+
+
 class VocabDefinitionIn(BaseModel):
     definition: str = ""
     example: str = ""
@@ -89,6 +102,11 @@ class VocabCreateRequest(BaseModel):
     definitions: list[VocabDefinitionIn] = []
 
 
+class PracticeSubmitRequest(BaseModel):
+    vocab_id: int
+    quality: int  # 0, 1, 2, 3, or 5
+
+
 # ── Lesson / Session routes ─────────────────────────────────
 
 
@@ -98,12 +116,13 @@ def api_list_sessions():
     return {
         "sessions": [
             {
-                "name": l["name"],
-                "original_filename": l["original_filename"],
-                "created_at": l["created_at"],
-                "segment_count": l["segment_count"],
+                "name": lesson["name"],
+                "original_filename": lesson["original_filename"],
+                "created_at": lesson["created_at"],
+                "segment_count": lesson["segment_count"],
+                "progress": lesson.get("progress", 0),
             }
-            for l in lessons
+            for lesson in lessons
         ]
     }
 
@@ -113,7 +132,42 @@ def api_load_session(session_name: str):
     lesson = get_lesson_by_name(session_name)
     if lesson is None:
         raise HTTPException(status_code=404, detail="Session not found")
-    return {"session_name": session_name, "total": lesson["segment_count"]}
+    return {
+        "session_name": session_name,
+        "total": lesson["segment_count"],
+        "progress": lesson.get("progress", 0),
+    }
+
+
+class ProgressRequest(BaseModel):
+    session_name: str
+    segment_index: int
+
+
+@app.post("/progress")
+def api_save_progress(req: ProgressRequest):
+    if not update_lesson_progress(req.session_name, req.segment_index):
+        raise HTTPException(status_code=404, detail="Session not found")
+    return {"ok": True}
+
+
+@app.delete("/sessions/{session_name}")
+def api_delete_session(session_name: str):
+    # Remove from database
+    if not delete_lesson_by_name(session_name):
+        raise HTTPException(status_code=404, detail="Session not found")
+
+    # Remove files
+    session_dir = os.path.join(SESSIONS_DIR, session_name)
+    if os.path.isdir(session_dir):
+        import shutil
+
+        try:
+            shutil.rmtree(session_dir)
+        except Exception as e:
+            print(f"Error deleting directory {session_dir}: {e}")
+
+    return {"ok": True}
 
 
 @app.get("/segment/{session_name}/{segment_id}")
@@ -126,6 +180,7 @@ def api_get_segment(session_name: str, segment_id: int):
         "audio_url": f"/audio/{session_name}/{seg['filename']}",
         "start_time": seg["start_time"],
         "end_time": seg["end_time"],
+        "transcript": seg["transcript"],
     }
 
 
@@ -138,7 +193,14 @@ def api_serve_audio(session_name: str, filename: str):
 
 
 @app.post("/upload")
-async def api_upload(audio: UploadFile = File(...)):
+async def api_upload(
+    audio: UploadFile = File(...),
+    vad_max: float = 1.0,
+    vad_min: float = 0.01,
+    vad_k: float = 2.0,
+    vad_t0: float = 2.5,
+    vad_threshold: float = 0.25,
+):
     if not audio.filename:
         raise HTTPException(status_code=400, detail="No file selected")
 
@@ -178,7 +240,16 @@ async def api_upload(audio: UploadFile = File(...)):
 
         print(f"Processing: {audio.filename} -> session '{session_name}'")
         segments = process_audio(
-            tmp.name, VAD_MODEL_PATH, asr_model, token_table, session_dir
+            tmp.name,
+            VAD_MODEL_PATH,
+            asr_model,
+            token_table,
+            session_dir,
+            vad_max,
+            vad_min,
+            vad_k,
+            vad_t0,
+            vad_threshold,
         )
 
         del asr_model
@@ -237,7 +308,33 @@ def api_answer(req: AnswerRequest):
     return {"expected": transcript}
 
 
-# ── Vocab routes ────────────────────────────────────────────
+@app.post("/hint")
+def api_hint(req: HintRequest):
+    transcript = get_segment_transcript(req.session_name, req.segment_id)
+    if transcript is None:
+        raise HTTPException(status_code=400, detail="Invalid session or segment")
+
+    norm_user = normalize_text(req.user_text)
+    norm_expected = normalize_text(transcript)
+
+    # Find where the user left off
+    prefix_len = 0
+    for a, b in zip(norm_expected, norm_user):
+        if a == b:
+            prefix_len += 1
+        else:
+            break
+
+    # Get the part of the transcript remaining after the correct prefix
+    remaining = norm_expected[prefix_len:].lstrip()
+    if not remaining:
+        return {"hint": None}
+
+    # The hint is the next word
+    next_word = remaining.split()[0]
+    return {"hint": next_word}
+
+    # ── Vocab routes ────────────────────────────────────────────
 
 
 @app.post("/vocab")
@@ -245,6 +342,14 @@ def api_create_vocab(req: VocabCreateRequest):
     defs = [d.model_dump() for d in req.definitions]
     vocab = save_vocab(req.word, req.pronunciation, defs)
     return vocab
+
+
+@app.put("/vocab/{vocab_id}")
+def api_update_vocab(vocab_id: int, req: VocabCreateRequest):
+    defs = [d.model_dump() for d in req.definitions]
+    if not update_vocab(vocab_id, req.word, req.pronunciation, defs):
+        raise HTTPException(status_code=404, detail="Vocab not found")
+    return {"ok": True}
 
 
 @app.get("/vocab")
@@ -259,7 +364,29 @@ def api_delete_vocab(vocab_id: int):
     return {"ok": True}
 
 
+# ── Vocab Practice (SM-2) routes ────────────────────────────
+
+
+@app.get("/vocab/practice")
+def api_vocab_practice():
+    from datetime import date
+
+    today = date.today().isoformat()
+    items = get_due_vocab(today)
+    return {"items": items, "total": len(items)}
+
+
+@app.post("/vocab/practice/submit")
+def api_vocab_practice_submit(req: PracticeSubmitRequest):
+    if req.quality not in (0, 1, 2, 3, 5):
+        raise HTTPException(status_code=400, detail="Quality must be 0, 1, 2, 3, or 5")
+    result = update_vocab_sm2(req.vocab_id, req.quality)
+    if result is None:
+        raise HTTPException(status_code=404, detail="Vocab not found")
+    return result
+
+
 if __name__ == "__main__":
     import uvicorn
 
-    uvicorn.run("app:app", host="0.0.0.0", port=8000, reload=True)
+    uvicorn.run("app:app", host="0.0.0.0", port=8001, reload=True)

@@ -229,15 +229,26 @@ SAMPLE_RATE = 16000
 BLOCK_SIZE = 512
 
 
-def dynamic_threshold(t):
-    MAX = 1.5
-    MIN = 0.01
-    k = 2
-    t0 = 2
-    return MIN + (MAX - MIN) / (1 + math.exp(k * (t - t0)))
+def dynamic_threshold(t, vmax=1.0, vmin=0.01, vk=2.0, vt0=2.5):
+    """
+    Computes a dynamic silence threshold based on the duration of the current speech segment.
+    Longer segments get a lower (stricter) threshold.
+    """
+    return vmin + (vmax - vmin) / (1 + math.exp(vk * (t - vt0)))
 
 
-def process_audio(file_path, vad_model_path, asr_model, token_table, session_dir):
+def process_audio(
+    file_path,
+    vad_model_path,
+    asr_model,
+    token_table,
+    session_dir,
+    vad_max=1.0,
+    vad_min=0.01,
+    vad_k=2.0,
+    vad_t0=2.5,
+    vad_threshold=0.25,
+):
     """Process audio: VAD segmentation + Whisper ASR. Saves WAV segments to session_dir."""
     waveform, sr = sf.read(file_path)
     if waveform.ndim > 1:
@@ -252,7 +263,7 @@ def process_audio(file_path, vad_model_path, asr_model, token_table, session_dir
         silero_vad=sherpa_onnx.SileroVadModelConfig(
             model=vad_model_path,
             window_size=BLOCK_SIZE,
-            threshold=0.3,
+            threshold=vad_threshold,
             min_speech_duration=0,
             min_silence_duration=0,
         ),
@@ -267,7 +278,7 @@ def process_audio(file_path, vad_model_path, asr_model, token_table, session_dir
     silence_start_idx = None
 
     def finalize_segment(start_idx, end_idx):
-        pre_buffer = 2 * BLOCK_SIZE
+        pre_buffer = 4 * BLOCK_SIZE
         actual_start = max(0, start_idx - pre_buffer)
         start_time = actual_start * time_per_sample
         end_time = end_idx * time_per_sample
@@ -306,7 +317,9 @@ def process_audio(file_path, vad_model_path, asr_model, token_table, session_dir
             if silence_start_idx is None:
                 silence_start_idx = i
             segment_duration = (i - speech_start_idx) * time_per_sample
-            silence_threshold = dynamic_threshold(segment_duration)
+            silence_threshold = dynamic_threshold(
+                segment_duration, vad_max, vad_min, vad_k, vad_t0
+            )
             current_silence = (i - silence_start_idx) * time_per_sample
             if current_silence >= silence_threshold:
                 finalize_segment(speech_start_idx, silence_start_idx)

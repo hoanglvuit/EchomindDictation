@@ -1,9 +1,9 @@
 .venv/ 
 .mypy_cache/
 __pycache__/
-backend/sessions/
 backend/model/
 backend/app.db
 frontend/node_modules/
 *.mp3
+*.wav
 app.db

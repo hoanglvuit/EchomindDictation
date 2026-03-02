@@ -4,12 +4,14 @@ import HomePage from "./components/HomePage";
 import Exercise from "./components/Exercise";
 import CompletionPage from "./components/CompletionPage";
 import VocabList from "./components/VocabList";
+import VocabPractice from "./components/VocabPractice";
 
 function App() {
-  const [page, setPage] = useState("home"); // home | exercise | complete | vocab
+  const [page, setPage] = useState("home"); // home | exercise | complete | vocab | practice
   const [sessions, setSessions] = useState([]);
   const [sessionName, setSessionName] = useState(null);
   const [totalSegments, setTotalSegments] = useState(0);
+  const [startIdx, setStartIdx] = useState(0);
   const [finalStats, setFinalStats] = useState(null);
 
   const fetchSessions = useCallback(async () => {
@@ -25,9 +27,10 @@ function App() {
     fetchSessions();
   }, [fetchSessions]);
 
-  const handleStartSession = (name, total) => {
+  const handleStartSession = (name, total, progress = 0) => {
     setSessionName(name);
     setTotalSegments(total);
+    setStartIdx(progress);
     setPage("exercise");
   };
 
@@ -40,6 +43,7 @@ function App() {
     setPage("home");
     setSessionName(null);
     setTotalSegments(0);
+    setStartIdx(0);
     setFinalStats(null);
     fetchSessions();
   };
@@ -59,6 +63,7 @@ function App() {
         <Exercise
           sessionName={sessionName}
           totalSegments={totalSegments}
+          startIdx={startIdx}
           onComplete={handleComplete}
           onBack={goHome}
         />
@@ -68,7 +73,9 @@ function App() {
         <CompletionPage stats={finalStats} onRestart={goHome} />
       )}
 
-      {page === "vocab" && <VocabList onBack={goHome} />}
+      {page === "vocab" && <VocabList onBack={goHome} onPractice={() => setPage("practice")} />}
+
+      {page === "practice" && <VocabPractice onBack={() => setPage("vocab")} />}
     </div>
   );
 }
