@@ -1,4 +1,4 @@
-# English Listening Dictation
+# EchoMind: Advanced English Listening Platform with SM-2 Spaced Repetition & AI Transcription
 
 Một ứng dụng nền tảng Web giúp luyện nghe chép chính tả tiếng Anh hiệu quả, tích hợp công nghệ AI nhận diện giọng nói và hệ thống ôn tập từ vựng thông minh (Spaced Repetion).
 
@@ -27,9 +27,10 @@ Dự án được xây dựng với mô hình Client-Server tách biệt:
 
 ### 1. Phân đoạn & Nhận diện tự động
 Khi bạn upload một file âm thanh, hệ thống sẽ:
-- Tự động cắt file thành các đoạn nhỏ (segments) dựa trên khoảng lặng (silence).
-- Sử dụng AI để tạo ra "Transcript" (bản gõ) cho từng đoạn.
-- Lưu trữ session để bạn có thể học tiếp bất cứ lúc nào (Progress Tracking).
+- **Tự động cắt đoạn (VAD)**: Sử dụng `Silero VAD` để chia nhỏ file.
+- **Dynamic Silence Threshold**: Áp dụng kỹ thuật ngưỡng im lặng động (Dynamic Threshold). Các đoạn thoại dài sẽ được áp dụng ngưỡng khắt khe hơn để tránh việc cắt giữa chừng khi người nói tạm nghỉ ngắn, trong khi các đoạn ngắn được xử lý linh hoạt hơn.
+- **Nhận diện AI**: Sử dụng AI để tạo ra "Transcript" cho từng đoạn.
+- **Lưu trữ session**: Tự động lưu tiến trình để bạn có thể học tiếp bất cứ lúc nào (Progress Tracking).
 
 ### 2. Chế độ luyện tập Dictation
 - Nghe từng đoạn âm thanh và gõ lại nội dung.
