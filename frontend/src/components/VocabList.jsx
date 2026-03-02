@@ -8,6 +8,7 @@ export default function VocabList({ onBack, onPractice }) {
     const [expandedId, setExpandedId] = useState(null);
     const [dueCount, setDueCount] = useState(0);
     const [editingVocab, setEditingVocab] = useState(null);
+    const [isAdding, setIsAdding] = useState(false);
 
     const fetchVocab = async () => {
         try {
@@ -63,6 +64,15 @@ export default function VocabList({ onBack, onPractice }) {
                             </span>
                         </button>
                     )}
+                    <button
+                        onClick={() => setIsAdding(true)}
+                        className="w-9 h-9 rounded-xl bg-white border border-slate-200 text-slate-500
+                hover:border-indigo-300 hover:text-indigo-500 transition-all cursor-pointer
+                flex items-center justify-center shadow-sm"
+                        title="Add word"
+                    >
+                        +
+                    </button>
                     <span className="text-sm text-slate-400">
                         {vocabItems.length} word{vocabItems.length !== 1 ? "s" : ""}
                     </span>
@@ -168,15 +178,19 @@ export default function VocabList({ onBack, onPractice }) {
                 </div>
             )}
 
-            {/* Edit Modal */}
-            {editingVocab && (
+            {/* Edit/Add Modal */}
+            {(editingVocab || isAdding) && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm animate-fade-in">
                     <div className="w-full max-w-lg shadow-2xl relative">
                         <VocabForm
                             vocab={editingVocab}
-                            onClose={() => setEditingVocab(null)}
+                            onClose={() => {
+                                setEditingVocab(null);
+                                setIsAdding(false);
+                            }}
                             onSaved={() => {
                                 setEditingVocab(null);
+                                setIsAdding(false);
                                 fetchVocab();
                             }}
                         />
