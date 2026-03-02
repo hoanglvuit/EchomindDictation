@@ -1,17 +1,21 @@
-import { useState, useEffect } from "react";
-import { saveVocab, updateVocab } from "../api";
+import { useState, useEffect, useCallback } from "react";
+import { saveVocab, updateVocab, scrapeVocab } from "../api";
 
 export default function VocabForm({ word: initialWord, vocab, onClose, onSaved }) {
     const [word, setWord] = useState(typeof initialWord === "string" ? initialWord : "");
     const [pronunciation, setPronunciation] = useState("");
+    const [audioUrl, setAudioUrl] = useState("");
+    const [oxfordUrl, setOxfordUrl] = useState("");
     const [definitions, setDefinitions] = useState([{ definition: "", example: "" }]);
     const [saving, setSaving] = useState(false);
+    const [fetching, setFetching] = useState(false);
     const [saved, setSaved] = useState(false);
 
     useEffect(() => {
         if (vocab) {
             setWord(vocab.word || "");
             setPronunciation(vocab.pronunciation || "");
+            setAudioUrl(vocab.audio_url || "");
             if (vocab.definitions && vocab.definitions.length > 0) {
                 setDefinitions(vocab.definitions.map(d => ({
                     definition: d.definition || "",
@@ -32,6 +36,30 @@ export default function VocabForm({ word: initialWord, vocab, onClose, onSaved }
         setDefinitions((prev) => prev.filter((_, i) => i !== index));
     };
 
+    const handleFetchOxford = useCallback(async (urlToFetch) => {
+        const url = urlToFetch || oxfordUrl;
+        if (!url || !url.includes("oxfordlearnersdictionaries.com")) return;
+
+        setFetching(true);
+        try {
+            const data = await scrapeVocab(url);
+            if (data.phonetic) setPronunciation(data.phonetic);
+            if (data.audio_url) setAudioUrl(data.audio_url);
+        } catch (err) {
+            console.error("Failed to fetch from Oxford:", err);
+        } finally {
+            setFetching(false);
+        }
+    }, [oxfordUrl]);
+
+    // Auto-fetch if user pastes an Oxford URL
+    useEffect(() => {
+        if (oxfordUrl.includes("oxfordlearnersdictionaries.com") && oxfordUrl !== (vocab?.oxford_url || "")) {
+            const timer = setTimeout(() => handleFetchOxford(), 1000);
+            return () => clearTimeout(timer);
+        }
+    }, [oxfordUrl, handleFetchOxford, vocab]);
+
     const handleSave = async () => {
         if (!word.trim()) {
             alert("Please enter a word.");
@@ -45,9 +73,9 @@ export default function VocabForm({ word: initialWord, vocab, onClose, onSaved }
         setSaving(true);
         try {
             if (vocab && vocab.id) {
-                await updateVocab(vocab.id, word.trim(), pronunciation, validDefs.length ? validDefs : definitions);
+                await updateVocab(vocab.id, word.trim(), pronunciation, validDefs.length ? validDefs : definitions, audioUrl);
             } else {
-                await saveVocab(word.trim(), pronunciation, validDefs.length ? validDefs : definitions);
+                await saveVocab(word.trim(), pronunciation, validDefs.length ? validDefs : definitions, audioUrl);
             }
             setSaved(true);
             setTimeout(() => onSaved(), 800);
@@ -85,13 +113,54 @@ export default function VocabForm({ word: initialWord, vocab, onClose, onSaved }
                 </div>
             ) : (
                 <div className="space-y-4">
-                    <div>
-                        <label className="block text-xs text-slate-500 mb-1 font-medium">Pronunciation</label>
-                        <input type="text" value={pronunciation} onChange={(e) => setPronunciation(e.target.value)}
-                            placeholder="e.g. /ˈpɛp.ər/"
-                            className="w-full px-3 py-2.5 rounded-lg bg-white border border-slate-200 text-sm text-slate-700
-                placeholder:text-slate-300 hover:border-indigo-300 transition-all"
-                        />
+                    <div className="mb-4">
+                        <label className="block text-xs text-slate-500 mb-1 font-medium">Oxford Dictionary URL (for auto-fill)</label>
+                        <div className="flex gap-2">
+                            <input type="text" value={oxfordUrl} onChange={(e) => setOxfordUrl(e.target.value)}
+                                placeholder="Paste Oxford URL here..."
+                                className="flex-1 px-3 py-2 rounded-lg bg-white border border-slate-200 text-sm text-slate-700
+                    placeholder:text-slate-300 hover:border-indigo-300 transition-all"
+                            />
+                            <button
+                                onClick={() => handleFetchOxford()}
+                                disabled={fetching || !oxfordUrl.includes("oxfordlearnersdictionaries.com")}
+                                className="px-3 py-2 rounded-lg bg-indigo-50 text-indigo-600 text-xs font-semibold
+                    hover:bg-indigo-100 disabled:opacity-50 transition-all cursor-pointer whitespace-nowrap"
+                            >
+                                {fetching ? "..." : "Fetch"}
+                            </button>
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3">
+                        <div>
+                            <label className="block text-xs text-slate-500 mb-1 font-medium">Pronunciation</label>
+                            <input type="text" value={pronunciation} onChange={(e) => setPronunciation(e.target.value)}
+                                placeholder="e.g. /ˈpɛp.ər/"
+                                className="w-full px-3 py-2 rounded-lg bg-white border border-slate-200 text-sm text-slate-700
+                    placeholder:text-slate-300 hover:border-indigo-300 transition-all"
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-xs text-slate-500 mb-1 font-medium">Audio URL</label>
+                            <div className="flex gap-2">
+                                <input type="text" value={audioUrl} onChange={(e) => setAudioUrl(e.target.value)}
+                                    placeholder="MP3 link..."
+                                    className="flex-1 px-3 py-2 rounded-lg bg-white border border-slate-200 text-sm text-slate-700
+                      placeholder:text-slate-300 hover:border-indigo-300 transition-all"
+                                />
+                                {audioUrl && (
+                                    <button
+                                        onClick={() => new Audio(audioUrl).play()}
+                                        className="w-10 h-10 rounded-lg bg-indigo-50 text-indigo-500 flex items-center justify-center
+                        hover:bg-indigo-100 transition-all cursor-pointer"
+                                        title="Test audio"
+                                    >
+                                        🔊
+                                    </button>
+                                )}
+                            </div>
+                        </div>
                     </div>
 
                     {definitions.map((def, i) => (

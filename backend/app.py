@@ -99,6 +99,7 @@ class VocabDefinitionIn(BaseModel):
 class VocabCreateRequest(BaseModel):
     word: str
     pronunciation: str = ""
+    audio_url: str | None = None
     definitions: list[VocabDefinitionIn] = []
 
 
@@ -340,16 +341,61 @@ def api_hint(req: HintRequest):
 @app.post("/vocab")
 def api_create_vocab(req: VocabCreateRequest):
     defs = [d.model_dump() for d in req.definitions]
-    vocab = save_vocab(req.word, req.pronunciation, defs)
+    vocab = save_vocab(req.word, req.pronunciation, defs, req.audio_url)
     return vocab
 
 
 @app.put("/vocab/{vocab_id}")
 def api_update_vocab(vocab_id: int, req: VocabCreateRequest):
     defs = [d.model_dump() for d in req.definitions]
-    if not update_vocab(vocab_id, req.word, req.pronunciation, defs):
+    if not update_vocab(vocab_id, req.word, req.pronunciation, defs, req.audio_url):
         raise HTTPException(status_code=404, detail="Vocab not found")
     return {"ok": True}
+
+
+class ScrapeRequest(BaseModel):
+    url: str
+
+
+@app.post("/vocab/scrape")
+def api_scrape_oxford(req: ScrapeRequest):
+    import requests
+    from bs4 import BeautifulSoup
+
+    headers = {"User-Agent": "Mozilla/5.0"}
+    try:
+        response = requests.get(req.url, headers=headers, timeout=10)
+        response.raise_for_status()
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Failed to fetch URL: {e}")
+
+    soup = BeautifulSoup(response.text, "html.parser")
+
+    # Try US audio first
+    audio_div = soup.find("div", class_="sound audio_play_button pron-us icon-audio")
+    if not audio_div:
+        # Fallback to any audio
+        audio_div = soup.find("div", class_="sound audio_play_button icon-audio")
+
+    mp3_url = None
+    if audio_div:
+        mp3_url = audio_div.get("data-src-mp3")
+        if not mp3_url:
+            mp3_url = audio_div.get("data-src-ogg")
+
+    phonetic = None
+    if audio_div:
+        phon_span = audio_div.find_next_sibling("span", class_="phon")
+        if phon_span:
+            phonetic = phon_span.text.strip()
+
+    if not phonetic:
+        # Try finding any phonetic span
+        phon_span = soup.find("span", class_="phon")
+        if phon_span:
+            phonetic = phon_span.text.strip()
+
+    return {"audio_url": mp3_url, "phonetic": phonetic}
 
 
 @app.get("/vocab")

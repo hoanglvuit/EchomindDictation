@@ -91,17 +91,24 @@ export async function getHint(sessionName, segmentId, userText) {
     });
 }
 
-export async function saveVocab(word, pronunciation, definitions) {
+export async function saveVocab(word, pronunciation, definitions, audio_url) {
     return request("/vocab", {
         method: "POST",
-        body: JSON.stringify({ word, pronunciation, definitions }),
+        body: JSON.stringify({ word, pronunciation, definitions, audio_url }),
     });
 }
 
-export async function updateVocab(id, word, pronunciation, definitions) {
+export async function updateVocab(id, word, pronunciation, definitions, audio_url) {
     return request(`/vocab/${id}`, {
         method: "PUT",
-        body: JSON.stringify({ word, pronunciation, definitions }),
+        body: JSON.stringify({ word, pronunciation, definitions, audio_url }),
+    });
+}
+
+export async function scrapeVocab(url) {
+    return request("/vocab/scrape", {
+        method: "POST",
+        body: JSON.stringify({ url }),
     });
 }
 

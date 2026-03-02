@@ -39,10 +39,16 @@ Khi bạn upload một file âm thanh, hệ thống sẽ:
 - Hỗ trợ "Hint" (gợi ý) từ tiếp theo nếu bạn gặp khó khăn.
 
 ### 3. Sổ tay từ vựng & Ôn tập lũy tiến (SM-2)
-- **Lưu từ**: Click trực tiếp vào từ vựng trong bài tập để lưu kèm phiên âm, định nghĩa và ví dụ.
+- **Lưu từ**: Click trực tiếp vào từ vựng trong bài tập để lưu.
+- **Tích hợp Oxford Dictionary (MỚI)**: 
+    - Tự động lấy **phiên âm (IPA)** và **âm thanh (US MP3)** khi nhập link từ Oxford.
+    - Hỗ trợ điền tự động (Auto-fetch) ngay khi dán link.
 - **Hệ thống ôn tập SM-2 đặc biệt**:
     - **Giai đoạn Làm quen (Repetition < 2)**: Sử dụng câu hỏi **Trắc nghiệm (MCQ)**.
     - **Giai đoạn Ghi nhớ (Repetition >= 2)**: Chuyển sang câu hỏi **Tự luận (Spelling)** để rèn luyện Active Recall.
+- **Phát âm thanh thông minh**: 
+    - Nút 🔊 xuất hiện trong danh sách từ vựng.
+    - Tự động hiển thị nút phát sau khi trả lời đúng trong lúc ôn tập để củng cố kỹ năng nghe.
 - **Thang điểm**: Linh hoạt dựa trên độ khó của hình thức kiểm tra (MCQ 1-2 điểm, Spelling 3-5 điểm).
 
 ---
@@ -90,5 +96,5 @@ english-listening/
 
 - **`lesson`**: Thông tin session học, tệp gốc và tiến độ (`progress`).
 - **`segment`**: Chi tiết từng đoạn âm thanh (thời gian bắt đầu/kết thúc, transcript).
-- **`vocab`**: Sổ tay từ vựng với các chỉ số SM-2 (`easiness_factor`, `repetition`, `next_review`).
+- **`vocab`**: Sổ tay từ vựng với các chỉ số SM-2 (`easiness_factor`, `repetition`, `next_review`) và link âm thanh (`audio_url`).
 - **`vocab_definition`**: Lưu trữ đa định nghĩa và ví dụ thực tế cho mỗi từ.

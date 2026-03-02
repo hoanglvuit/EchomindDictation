@@ -128,8 +128,18 @@ export default function MCQQuestion({ item, onAnswer }) {
             {/* Full word details after resolution */}
             {resolved && (
                 <div className="p-4 rounded-xl bg-indigo-50/60 border border-indigo-100 animate-fade-in">
-                    <div className="flex items-baseline gap-2 mb-2">
+                    <div className="flex items-center gap-3 mb-2">
                         <span className="text-lg font-bold text-indigo-600">{item.word}</span>
+                        {item.audio_url && (
+                            <button
+                                onClick={() => new Audio(item.audio_url).play()}
+                                className="w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600 flex items-center justify-center
+                    hover:bg-indigo-200 transition-all cursor-pointer text-xs"
+                                title="Play audio"
+                            >
+                                🔊
+                            </button>
+                        )}
                         {item.pronunciation && (
                             <span className="text-sm text-slate-400 italic">{item.pronunciation}</span>
                         )}

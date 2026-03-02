@@ -115,6 +115,19 @@ export default function VocabList({ onBack, onPractice }) {
                                             {v.pronunciation}
                                         </span>
                                     )}
+                                    {v.audio_url && (
+                                        <button
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                new Audio(v.audio_url).play();
+                                            }}
+                                            className="w-7 h-7 rounded-lg bg-indigo-50 text-indigo-500 flex items-center justify-center
+                          hover:bg-indigo-100 transition-all cursor-pointer text-xs"
+                                            title="Play audio"
+                                        >
+                                            🔊
+                                        </button>
+                                    )}
                                 </div>
                                 <div className="flex items-center gap-2">
                                     <span className={`text-xs px-1.5 py-0.5 rounded-full font-medium ${v.next_review <= new Date().toISOString().split("T")[0]

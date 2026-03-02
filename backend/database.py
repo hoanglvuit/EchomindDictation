@@ -8,6 +8,7 @@ import os
 import random
 import sqlite3
 from datetime import datetime, date, timedelta
+from typing import Optional
 from contextlib import contextmanager
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -42,7 +43,8 @@ CREATE TABLE IF NOT EXISTS vocab (
     easiness_factor REAL NOT NULL DEFAULT 2.5,
     repetition      INTEGER NOT NULL DEFAULT 0,
     interval_days   INTEGER NOT NULL DEFAULT 0,
-    next_review     TEXT NOT NULL DEFAULT ''
+    next_review     TEXT NOT NULL DEFAULT '',
+    audio_url       TEXT
 );
 
 CREATE TABLE IF NOT EXISTS vocab_definition (
@@ -60,6 +62,7 @@ MIGRATIONS = [
     "ALTER TABLE vocab ADD COLUMN interval_days INTEGER NOT NULL DEFAULT 0",
     "ALTER TABLE vocab ADD COLUMN next_review TEXT NOT NULL DEFAULT ''",
     "ALTER TABLE lesson ADD COLUMN progress INTEGER NOT NULL DEFAULT 0",
+    "ALTER TABLE vocab ADD COLUMN audio_url TEXT",
 ]
 
 
@@ -198,13 +201,15 @@ def get_segment_transcript(lesson_name: str, segment_index: int) -> str | None:
 # ── Vocab helpers ───────────────────────────────────────────
 
 
-def save_vocab(word: str, pronunciation: str, definitions: list[dict]) -> dict:
+def save_vocab(
+    word: str, pronunciation: str, definitions: list[dict], audio_url: str = None
+) -> dict:
     now = datetime.now().isoformat()
     today = date.today().isoformat()
     with get_db() as conn:
         cur = conn.execute(
-            "INSERT INTO vocab (word, pronunciation, created_at, next_review) VALUES (?, ?, ?, ?)",
-            (word, pronunciation, now, today),
+            "INSERT INTO vocab (word, pronunciation, created_at, next_review, audio_url) VALUES (?, ?, ?, ?, ?)",
+            (word, pronunciation, now, today, audio_url),
         )
         vocab_id = cur.lastrowid
         for d in definitions:
@@ -221,12 +226,16 @@ def save_vocab(word: str, pronunciation: str, definitions: list[dict]) -> dict:
 
 
 def update_vocab(
-    vocab_id: int, word: str, pronunciation: str, definitions: list[dict]
+    vocab_id: int,
+    word: str,
+    pronunciation: str,
+    definitions: list[dict],
+    audio_url: Optional[str] = None,
 ) -> bool:
     with get_db() as conn:
         cur = conn.execute(
-            "UPDATE vocab SET word = ?, pronunciation = ? WHERE id = ?",
-            (word, pronunciation, vocab_id),
+            "UPDATE vocab SET word = ?, pronunciation = ?, audio_url = ? WHERE id = ?",
+            (word, pronunciation, audio_url, vocab_id),
         )
         if cur.rowcount == 0:
             return False
@@ -337,7 +346,7 @@ def get_due_vocab(today_str: str) -> list[dict]:
                 d["definition"] for d in v["definitions"] if d["definition"].strip()
             ]
 
-            # Assign quiz type: 
+            # Assign quiz type:
             # - Repetition < 2: MCQ (if enough distractors)
             # - Repetition >= 2: Spelling
             if v["repetition"] < 2 and total_vocab >= 4:

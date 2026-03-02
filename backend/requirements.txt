@@ -7,3 +7,5 @@ sherpa-onnx
 onnxruntime
 kaldi-native-fbank
 torch
+requests
+beautifulsoup4
