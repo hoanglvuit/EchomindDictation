@@ -94,11 +94,13 @@ class HintRequest(BaseModel):
 class VocabDefinitionIn(BaseModel):
     definition: str = ""
     example: str = ""
+    patterns: list[str] = []
 
 
 class VocabCreateRequest(BaseModel):
     word: str
     pronunciation: str = ""
+    general_meaning: str = ""
     audio_url: str | None = None
     definitions: list[VocabDefinitionIn] = []
 
@@ -341,14 +343,23 @@ def api_hint(req: HintRequest):
 @app.post("/vocab")
 def api_create_vocab(req: VocabCreateRequest):
     defs = [d.model_dump() for d in req.definitions]
-    vocab = save_vocab(req.word, req.pronunciation, defs, req.audio_url)
+    vocab = save_vocab(
+        req.word, req.pronunciation, defs, req.general_meaning, req.audio_url
+    )
     return vocab
 
 
 @app.put("/vocab/{vocab_id}")
 def api_update_vocab(vocab_id: int, req: VocabCreateRequest):
     defs = [d.model_dump() for d in req.definitions]
-    if not update_vocab(vocab_id, req.word, req.pronunciation, defs, req.audio_url):
+    if not update_vocab(
+        vocab_id,
+        req.word,
+        req.pronunciation,
+        defs,
+        req.general_meaning,
+        req.audio_url,
+    ):
         raise HTTPException(status_code=404, detail="Vocab not found")
     return {"ok": True}
 

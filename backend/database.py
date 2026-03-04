@@ -6,6 +6,7 @@ Includes SM-2 spaced repetition fields on vocab.
 
 import os
 import random
+import json
 import sqlite3
 from datetime import datetime, date, timedelta
 from typing import Optional
@@ -39,6 +40,7 @@ CREATE TABLE IF NOT EXISTS vocab (
     id              INTEGER PRIMARY KEY AUTOINCREMENT,
     word            TEXT NOT NULL,
     pronunciation   TEXT NOT NULL DEFAULT '',
+    general_meaning TEXT NOT NULL DEFAULT '',
     created_at      TEXT NOT NULL,
     easiness_factor REAL NOT NULL DEFAULT 2.5,
     repetition      INTEGER NOT NULL DEFAULT 0,
@@ -51,7 +53,8 @@ CREATE TABLE IF NOT EXISTS vocab_definition (
     id              INTEGER PRIMARY KEY AUTOINCREMENT,
     vocab_id        INTEGER NOT NULL REFERENCES vocab(id) ON DELETE CASCADE,
     definition      TEXT NOT NULL DEFAULT '',
-    example         TEXT NOT NULL DEFAULT ''
+    example         TEXT NOT NULL DEFAULT '',
+    patterns        TEXT NOT NULL DEFAULT '[]'
 );
 """
 
@@ -61,8 +64,10 @@ MIGRATIONS = [
     "ALTER TABLE vocab ADD COLUMN repetition INTEGER NOT NULL DEFAULT 0",
     "ALTER TABLE vocab ADD COLUMN interval_days INTEGER NOT NULL DEFAULT 0",
     "ALTER TABLE vocab ADD COLUMN next_review TEXT NOT NULL DEFAULT ''",
-    "ALTER TABLE lesson ADD COLUMN progress INTEGER NOT NULL DEFAULT 0",
+    "ALTER TABLE vocab ADD COLUMN progress INTEGER NOT NULL DEFAULT 0",
     "ALTER TABLE vocab ADD COLUMN audio_url TEXT",
+    "ALTER TABLE vocab ADD COLUMN general_meaning TEXT NOT NULL DEFAULT ''",
+    "ALTER TABLE vocab_definition ADD COLUMN patterns TEXT NOT NULL DEFAULT '[]'",
 ]
 
 
@@ -202,25 +207,37 @@ def get_segment_transcript(lesson_name: str, segment_index: int) -> str | None:
 
 
 def save_vocab(
-    word: str, pronunciation: str, definitions: list[dict], audio_url: str = None
+    word: str,
+    pronunciation: str,
+    definitions: list[dict],
+    general_meaning: str = "",
+    audio_url: Optional[str] = None,
 ) -> dict:
+
     now = datetime.now().isoformat()
     today = date.today().isoformat()
     with get_db() as conn:
         cur = conn.execute(
-            "INSERT INTO vocab (word, pronunciation, created_at, next_review, audio_url) VALUES (?, ?, ?, ?, ?)",
-            (word, pronunciation, now, today, audio_url),
+            "INSERT INTO vocab (word, pronunciation, general_meaning, created_at, next_review, audio_url) VALUES (?, ?, ?, ?, ?, ?)",
+            (word, pronunciation, general_meaning, now, today, audio_url),
         )
         vocab_id = cur.lastrowid
         for d in definitions:
+            patterns_json = json.dumps(d.get("patterns", []))
             conn.execute(
-                "INSERT INTO vocab_definition (vocab_id, definition, example) VALUES (?, ?, ?)",
-                (vocab_id, d.get("definition", ""), d.get("example", "")),
+                "INSERT INTO vocab_definition (vocab_id, definition, example, patterns) VALUES (?, ?, ?, ?)",
+                (
+                    vocab_id,
+                    d.get("definition", ""),
+                    d.get("example", ""),
+                    patterns_json,
+                ),
             )
         return {
             "id": vocab_id,
             "word": word,
             "pronunciation": pronunciation,
+            "general_meaning": general_meaning,
             "created_at": now,
         }
 
@@ -230,12 +247,14 @@ def update_vocab(
     word: str,
     pronunciation: str,
     definitions: list[dict],
+    general_meaning: str = "",
     audio_url: Optional[str] = None,
 ) -> bool:
+
     with get_db() as conn:
         cur = conn.execute(
-            "UPDATE vocab SET word = ?, pronunciation = ?, audio_url = ? WHERE id = ?",
-            (word, pronunciation, audio_url, vocab_id),
+            "UPDATE vocab SET word = ?, pronunciation = ?, general_meaning = ?, audio_url = ? WHERE id = ?",
+            (word, pronunciation, general_meaning, audio_url, vocab_id),
         )
         if cur.rowcount == 0:
             return False
@@ -243,9 +262,15 @@ def update_vocab(
         # Replace definitions
         conn.execute("DELETE FROM vocab_definition WHERE vocab_id = ?", (vocab_id,))
         for d in definitions:
+            patterns_json = json.dumps(d.get("patterns", []))
             conn.execute(
-                "INSERT INTO vocab_definition (vocab_id, definition, example) VALUES (?, ?, ?)",
-                (vocab_id, d.get("definition", ""), d.get("example", "")),
+                "INSERT INTO vocab_definition (vocab_id, definition, example, patterns) VALUES (?, ?, ?, ?)",
+                (
+                    vocab_id,
+                    d.get("definition", ""),
+                    d.get("example", ""),
+                    patterns_json,
+                ),
             )
         return True
 
@@ -257,10 +282,17 @@ def list_vocab() -> list[dict]:
         for row in rows:
             v = dict(row)
             defs = conn.execute(
-                "SELECT id, definition, example FROM vocab_definition WHERE vocab_id = ?",
+                "SELECT id, definition, example, patterns FROM vocab_definition WHERE vocab_id = ?",
                 (v["id"],),
             ).fetchall()
-            v["definitions"] = [dict(d) for d in defs]
+            v["definitions"] = []
+            for d in defs:
+                d_dict = dict(d)
+                try:
+                    d_dict["patterns"] = json.loads(d_dict.get("patterns", "[]"))
+                except (json.JSONDecodeError, TypeError):
+                    d_dict["patterns"] = []
+                v["definitions"].append(d_dict)
             result.append(v)
         return result
 
@@ -331,10 +363,17 @@ def get_due_vocab(today_str: str) -> list[dict]:
         for row in rows:
             v = dict(row)
             defs = conn.execute(
-                "SELECT id, definition, example FROM vocab_definition WHERE vocab_id = ?",
+                "SELECT id, definition, example, patterns FROM vocab_definition WHERE vocab_id = ?",
                 (v["id"],),
             ).fetchall()
-            v["definitions"] = [dict(d) for d in defs]
+            v["definitions"] = []
+            for d in defs:
+                d_dict = dict(d)
+                try:
+                    d_dict["patterns"] = json.loads(d_dict.get("patterns", "[]"))
+                except (json.JSONDecodeError, TypeError):
+                    d_dict["patterns"] = []
+                v["definitions"].append(d_dict)
 
             # Skip words with no definitions (can't quiz on them)
             has_definition = any(d["definition"].strip() for d in v["definitions"])

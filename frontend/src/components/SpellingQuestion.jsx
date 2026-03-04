@@ -87,6 +87,11 @@ export default function SpellingQuestion({ item, onAnswer }) {
                     ✏️ Type the word that matches this definition:
                 </div>
                 <div className="text-base text-slate-700 leading-relaxed font-medium">
+                    {item.general_meaning && (
+                        <div className="mb-2 p-2 rounded bg-white/50 border border-teal-200 text-sm italic text-teal-700">
+                            Core Idea: {item.general_meaning}
+                        </div>
+                    )}
                     {item.question_definitions.length === 1 ? (
                         <span>"{item.question_definitions[0]}"</span>
                     ) : (
@@ -206,7 +211,7 @@ export default function SpellingQuestion({ item, onAnswer }) {
             {/* Full word details after resolution */}
             {resolved && (
                 <div className="p-4 rounded-xl bg-indigo-50/60 border border-indigo-100 animate-fade-in">
-                    <div className="flex items-center gap-3 mb-2">
+                    <div className="flex items-center gap-3 mb-1">
                         <span className="text-lg font-bold text-indigo-600">{item.word}</span>
                         {item.audio_url && (
                             <button
@@ -222,6 +227,9 @@ export default function SpellingQuestion({ item, onAnswer }) {
                             <span className="text-sm text-slate-400 italic">{item.pronunciation}</span>
                         )}
                     </div>
+                    {item.general_meaning && (
+                        <p className="text-sm text-slate-500 italic mb-3">{item.general_meaning}</p>
+                    )}
                     {item.definitions && item.definitions.length > 0 && (
                         <div className="space-y-2">
                             {item.definitions.map((d, i) => (
@@ -236,6 +244,15 @@ export default function SpellingQuestion({ item, onAnswer }) {
                                         <p className="text-sm text-slate-400 italic mt-0.5">
                                             "{d.example}"
                                         </p>
+                                    )}
+                                    {d.patterns && d.patterns.length > 0 && (
+                                        <div className="flex flex-wrap gap-1 mt-1.5">
+                                            {d.patterns.map((p, pi) => (
+                                                <span key={pi} className="px-1.5 py-0.5 rounded bg-indigo-100 text-indigo-600 text-[10px] font-bold uppercase tracking-tighter">
+                                                    {p}
+                                                </span>
+                                            ))}
+                                        </div>
                                     )}
                                 </div>
                             ))}

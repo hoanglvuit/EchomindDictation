@@ -43,6 +43,11 @@ Khi bạn upload một file âm thanh, hệ thống sẽ:
 - **Tích hợp Oxford Dictionary (MỚI)**: 
     - Tự động lấy **phiên âm (IPA)** và **âm thanh (US MP3)** khi nhập link từ Oxford.
     - Hỗ trợ điền tự động (Auto-fetch) ngay khi dán link.
+- **Cấu trúc từ vựng tối ưu cho việc học (MỚI)**:
+    - **Core Idea (General Meaning)**: Một định nghĩa cốt lõi, ngắn gọn bằng tiếng Anh giúp nắm bắt ý tưởng chính.
+    - **Usage Categories**: Chia nhỏ các nét nghĩa theo nhóm thông dụng nhất (1-3 nhóm chính).
+    - **Usage Patterns**: Làm nổi bật các cấu trúc sử dụng phổ biến (Ví dụ: `get + adjective`).
+    - **Ví dụ thực tế**: Mỗi nét nghĩa đi kèm với một câu ví dụ tự nhiên.
 - **Hệ thống ôn tập SM-2 đặc biệt**:
     - **Giai đoạn Làm quen (Repetition < 2)**: Sử dụng câu hỏi **Trắc nghiệm (MCQ)**.
     - **Giai đoạn Ghi nhớ (Repetition >= 2)**: Chuyển sang câu hỏi **Tự luận (Spelling)** để rèn luyện Active Recall.
@@ -96,5 +101,5 @@ english-listening/
 
 - **`lesson`**: Thông tin session học, tệp gốc và tiến độ (`progress`).
 - **`segment`**: Chi tiết từng đoạn âm thanh (thời gian bắt đầu/kết thúc, transcript).
-- **`vocab`**: Sổ tay từ vựng với các chỉ số SM-2 (`easiness_factor`, `repetition`, `next_review`) và link âm thanh (`audio_url`).
-- **`vocab_definition`**: Lưu trữ đa định nghĩa và ví dụ thực tế cho mỗi từ.
+- **`vocab`**: Sổ tay từ vựng với các chỉ số SM-2 (`easiness_factor`, `repetition`, `next_review`), link âm thanh (`audio_url`) và ý nghĩa cốt lõi (`general_meaning`).
+- **`vocab_definition`**: Lưu trữ đa định nghĩa, ví dụ thực tế và các mẫu câu thông dụng (`patterns`) cho mỗi từ.

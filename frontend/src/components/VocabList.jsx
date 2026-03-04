@@ -105,83 +105,102 @@ export default function VocabList({ onBack, onPractice }) {
                             }
                         >
                             {/* Word header */}
-                            <div className="flex items-center justify-between">
-                                <div className="flex items-center gap-3">
-                                    <span className="text-lg font-bold text-indigo-600">
-                                        {v.word}
-                                    </span>
-                                    {v.pronunciation && (
-                                        <span className="text-sm text-slate-400 italic">
-                                            {v.pronunciation}
+                            <div className="flex flex-col gap-1">
+                                <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-3">
+                                        <span className="text-lg font-bold text-indigo-600">
+                                            {v.word}
                                         </span>
-                                    )}
-                                    {v.audio_url && (
+                                        {v.pronunciation && (
+                                            <span className="text-sm text-slate-400 italic">
+                                                {v.pronunciation}
+                                            </span>
+                                        )}
+                                        {v.audio_url && (
+                                            <button
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    new Audio(v.audio_url).play();
+                                                }}
+                                                className="w-7 h-7 rounded-lg bg-indigo-50 text-indigo-500 flex items-center justify-center
+                              hover:bg-indigo-100 transition-all cursor-pointer text-xs"
+                                                title="Play audio"
+                                            >
+                                                🔊
+                                            </button>
+                                        )}
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        <span className={`text-xs px-1.5 py-0.5 rounded-full font-medium ${v.next_review <= new Date().toISOString().split("T")[0]
+                                            ? "bg-emerald-100 text-emerald-600"
+                                            : "bg-slate-100 text-slate-400"
+                                            }`}>
+                                            📅 {v.next_review}
+                                        </span>
                                         <button
                                             onClick={(e) => {
                                                 e.stopPropagation();
-                                                new Audio(v.audio_url).play();
+                                                setEditingVocab(v);
                                             }}
-                                            className="w-7 h-7 rounded-lg bg-indigo-50 text-indigo-500 flex items-center justify-center
-                          hover:bg-indigo-100 transition-all cursor-pointer text-xs"
-                                            title="Play audio"
+                                            className="w-7 h-7 rounded-lg text-slate-400 hover:text-indigo-500 hover:bg-indigo-50
+                          flex items-center justify-center transition-all cursor-pointer text-sm"
+                                            title="Edit"
                                         >
-                                            🔊
+                                            ✎
                                         </button>
-                                    )}
+                                        <button
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                handleDelete(v.id);
+                                            }}
+                                            className="w-7 h-7 rounded-lg text-slate-400 hover:text-rose-400 hover:bg-rose-50
+                          flex items-center justify-center transition-all cursor-pointer text-sm"
+                                            title="Delete"
+                                        >
+                                            ×
+                                        </button>
+                                    </div>
                                 </div>
-                                <div className="flex items-center gap-2">
-                                    <span className={`text-xs px-1.5 py-0.5 rounded-full font-medium ${v.next_review <= new Date().toISOString().split("T")[0]
-                                        ? "bg-emerald-100 text-emerald-600"
-                                        : "bg-slate-100 text-slate-400"
-                                        }`}>
-                                        📅 {v.next_review}
-                                    </span>
-                                    <button
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            setEditingVocab(v);
-                                        }}
-                                        className="w-7 h-7 rounded-lg text-slate-400 hover:text-indigo-500 hover:bg-indigo-50
-                      flex items-center justify-center transition-all cursor-pointer text-sm"
-                                        title="Edit"
-                                    >
-                                        ✎
-                                    </button>
-                                    <button
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            handleDelete(v.id);
-                                        }}
-                                        className="w-7 h-7 rounded-lg text-slate-400 hover:text-rose-400 hover:bg-rose-50
-                      flex items-center justify-center transition-all cursor-pointer text-sm"
-                                        title="Delete"
-                                    >
-                                        ×
-                                    </button>
-                                </div>
+                                {v.general_meaning && (
+                                    <p className="text-sm text-slate-500 font-medium line-clamp-1 italic">
+                                        {v.general_meaning}
+                                    </p>
+                                )}
                             </div>
 
                             {/* Expanded definitions */}
-                            {expandedId === v.id && v.definitions && (
-                                <div className="mt-3 pt-3 border-t border-slate-200/60 space-y-2 animate-fade-in">
-                                    {v.definitions.map((d, i) => (
-                                        <div key={d.id || i} className="pl-3 border-l-2 border-indigo-300">
-                                            {d.definition && (
-                                                <p className="text-sm text-slate-700">
-                                                    <span className="font-medium text-indigo-500">Def:</span>{" "}
-                                                    {d.definition}
-                                                </p>
-                                            )}
-                                            {d.example && (
-                                                <p className="text-sm text-slate-400 italic mt-0.5">
-                                                    "{d.example}"
-                                                </p>
-                                            )}
+                            {expandedId === v.id && (
+                                <div className="mt-3 pt-3 border-t border-slate-200/60 space-y-4 animate-fade-in">
+                                    {v.definitions && v.definitions.map((d, i) => (
+                                        <div key={d.id || i} className="pl-4 border-l-2 border-indigo-200 relative">
+                                            <div className="absolute -left-[2px] top-0 bottom-0 w-[2px] bg-indigo-500 rounded-full" />
+                                            <div className="flex flex-col gap-1.5">
+                                                {d.definition && (
+                                                    <p className="text-sm text-slate-800">
+                                                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mr-2">Meaning:</span>
+                                                        {d.definition}
+                                                    </p>
+                                                )}
+                                                {d.example && (
+                                                    <p className="text-sm text-slate-500 italic pl-2 border-l border-slate-200 ml-1">
+                                                        "{d.example}"
+                                                    </p>
+                                                )}
+                                                {d.patterns && d.patterns.length > 0 && (
+                                                    <div className="flex flex-wrap gap-1.5 pt-1">
+                                                        {d.patterns.map((p, pi) => (
+                                                            <span key={pi} className="px-1.5 py-0.5 rounded bg-indigo-50 text-indigo-500 text-[10px] font-bold border border-indigo-100 uppercase tracking-tighter">
+                                                                {p}
+                                                            </span>
+                                                        ))}
+                                                    </div>
+                                                )}
+                                            </div>
                                         </div>
                                     ))}
                                     {(!v.definitions || v.definitions.length === 0) && (
                                         <p className="text-sm text-slate-400 italic">
-                                            No definitions added
+                                            No usage categories added
                                         </p>
                                     )}
                                 </div>

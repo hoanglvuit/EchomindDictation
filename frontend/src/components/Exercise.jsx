@@ -576,13 +576,17 @@ export default function Exercise({
                 </div>
 
             </div>
-            {/* Vocab Form */}
+            {/* Vocab Form Modal */}
             {showVocab && selectedWord && (
-                <VocabForm
-                    word={selectedWord}
-                    onClose={() => { setShowVocab(false); setSelectedWord(null); }}
-                    onSaved={() => { setShowVocab(false); setSelectedWord(null); }}
-                />
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm animate-fade-in">
+                    <div className="w-full max-w-lg shadow-2xl relative">
+                        <VocabForm
+                            word={selectedWord}
+                            onClose={() => { setShowVocab(false); setSelectedWord(null); }}
+                            onSaved={() => { setShowVocab(false); setSelectedWord(null); }}
+                        />
+                    </div>
+                </div>
             )}
         </div>
     );
