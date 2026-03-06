@@ -1,0 +1,230 @@
+{
+    "segments": [
+        {
+            "start": 0.031,
+            "end": 6.227,
+            "text": " and how choosing a little bit less can actually feel like more freedom and more peace of mind.",
+            "words": [
+                {
+                    "word": "and",
+                    "start": 0.031,
+                    "end": 0.172,
+                    "score": 0.789
+                },
+                {
+                    "word": "how",
+                    "start": 0.232,
+                    "end": 0.353,
+                    "score": 0.991
+                },
+                {
+                    "word": "choosing",
+                    "start": 0.433,
+                    "end": 0.816,
+                    "score": 0.891
+                },
+                {
+                    "word": "a",
+                    "start": 0.836,
+                    "end": 0.856,
+                    "score": 1.0
+                },
+                {
+                    "word": "little",
+                    "start": 1.158,
+                    "end": 1.439,
+                    "score": 0.78
+                },
+                {
+                    "word": "bit",
+                    "start": 1.5,
+                    "end": 1.66,
+                    "score": 0.77
+                },
+                {
+                    "word": "less",
+                    "start": 1.842,
+                    "end": 2.284,
+                    "score": 0.77
+                },
+                {
+                    "word": "can",
+                    "start": 2.425,
+                    "end": 2.566,
+                    "score": 0.888
+                },
+                {
+                    "word": "actually",
+                    "start": 2.948,
+                    "end": 3.33,
+                    "score": 0.97
+                },
+                {
+                    "word": "feel",
+                    "start": 3.411,
+                    "end": 3.632,
+                    "score": 0.93
+                },
+                {
+                    "word": "like",
+                    "start": 3.652,
+                    "end": 3.853,
+                    "score": 0.758
+                },
+                {
+                    "word": "more",
+                    "start": 3.914,
+                    "end": 4.054,
+                    "score": 0.676
+                },
+                {
+                    "word": "freedom",
+                    "start": 4.195,
+                    "end": 4.638,
+                    "score": 0.846
+                },
+                {
+                    "word": "and",
+                    "start": 4.658,
+                    "end": 5.101,
+                    "score": 0.879
+                },
+                {
+                    "word": "more",
+                    "start": 5.141,
+                    "end": 5.302,
+                    "score": 0.666
+                },
+                {
+                    "word": "peace",
+                    "start": 5.382,
+                    "end": 5.624,
+                    "score": 0.84
+                },
+                {
+                    "word": "of",
+                    "start": 5.664,
+                    "end": 5.704,
+                    "score": 0.98
+                },
+                {
+                    "word": "mind.",
+                    "start": 5.805,
+                    "end": 6.227,
+                    "score": 0.736
+                }
+            ],
+            "avg_logprob": -0.022625351045280694
+        }
+    ],
+    "word_segments": [
+        {
+            "word": "and",
+            "start": 0.031,
+            "end": 0.172,
+            "score": 0.789
+        },
+        {
+            "word": "how",
+            "start": 0.232,
+            "end": 0.353,
+            "score": 0.991
+        },
+        {
+            "word": "choosing",
+            "start": 0.433,
+            "end": 0.816,
+            "score": 0.891
+        },
+        {
+            "word": "a",
+            "start": 0.836,
+            "end": 0.856,
+            "score": 1.0
+        },
+        {
+            "word": "little",
+            "start": 1.158,
+            "end": 1.439,
+            "score": 0.78
+        },
+        {
+            "word": "bit",
+            "start": 1.5,
+            "end": 1.66,
+            "score": 0.77
+        },
+        {
+            "word": "less",
+            "start": 1.842,
+            "end": 2.284,
+            "score": 0.77
+        },
+        {
+            "word": "can",
+            "start": 2.425,
+            "end": 2.566,
+            "score": 0.888
+        },
+        {
+            "word": "actually",
+            "start": 2.948,
+            "end": 3.33,
+            "score": 0.97
+        },
+        {
+            "word": "feel",
+            "start": 3.411,
+            "end": 3.632,
+            "score": 0.93
+        },
+        {
+            "word": "like",
+            "start": 3.652,
+            "end": 3.853,
+            "score": 0.758
+        },
+        {
+            "word": "more",
+            "start": 3.914,
+            "end": 4.054,
+            "score": 0.676
+        },
+        {
+            "word": "freedom",
+            "start": 4.195,
+            "end": 4.638,
+            "score": 0.846
+        },
+        {
+            "word": "and",
+            "start": 4.658,
+            "end": 5.101,
+            "score": 0.879
+        },
+        {
+            "word": "more",
+            "start": 5.141,
+            "end": 5.302,
+            "score": 0.666
+        },
+        {
+            "word": "peace",
+            "start": 5.382,
+            "end": 5.624,
+            "score": 0.84
+        },
+        {
+            "word": "of",
+            "start": 5.664,
+            "end": 5.704,
+            "score": 0.98
+        },
+        {
+            "word": "mind.",
+            "start": 5.805,
+            "end": 6.227,
+            "score": 0.736
+        }
+    ]
+}

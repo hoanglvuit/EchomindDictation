@@ -5,7 +5,7 @@ export default function HomePage({ sessions, onStartSession, onRefresh, onOpenVo
     const [file, setFile] = useState(null);
     const [uploading, setUploading] = useState(false);
     const [dragOver, setDragOver] = useState(false);
-    const [vadParams, setVadParams] = useState({ max: 1.0, min: 0.01, k: 2.0, t0: 2.5, threshold: 0.25 });
+    const [vadParams, setVadParams] = useState({ threshold: 0.25 });
     const [showAdvanced, setShowAdvanced] = useState(false);
     const inputRef = useRef(null);
 
@@ -179,40 +179,8 @@ export default function HomePage({ sessions, onStartSession, onRefresh, onOpenVo
                     </button>
 
                     {showAdvanced && (
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 p-4 rounded-xl bg-slate-50 border border-slate-100 animate-fade-in">
+                        <div className="p-4 rounded-xl bg-slate-50 border border-slate-100 animate-fade-in">
                             <div>
-                                <label className="block text-[10px] uppercase tracking-wider text-slate-400 mb-1 font-bold">MAX (Threshold)</label>
-                                <input
-                                    type="number" step="0.1" value={vadParams.max}
-                                    onChange={(e) => setVadParams({ ...vadParams, max: parseFloat(e.target.value) })}
-                                    className="w-full px-2 py-1.5 rounded text-sm border border-slate-200"
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-[10px] uppercase tracking-wider text-slate-400 mb-1 font-bold">MIN (Threshold)</label>
-                                <input
-                                    type="number" step="0.01" value={vadParams.min}
-                                    onChange={(e) => setVadParams({ ...vadParams, min: parseFloat(e.target.value) })}
-                                    className="w-full px-2 py-1.5 rounded text-sm border border-slate-200"
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-[10px] uppercase tracking-wider text-slate-400 mb-1 font-bold">k (Slope)</label>
-                                <input
-                                    type="number" step="0.5" value={vadParams.k}
-                                    onChange={(e) => setVadParams({ ...vadParams, k: parseFloat(e.target.value) })}
-                                    className="w-full px-2 py-1.5 rounded text-sm border border-slate-200"
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-[10px] uppercase tracking-wider text-slate-400 mb-1 font-bold">t0 (Midpoint)</label>
-                                <input
-                                    type="number" step="0.5" value={vadParams.t0}
-                                    onChange={(e) => setVadParams({ ...vadParams, t0: parseFloat(e.target.value) })}
-                                    className="w-full px-2 py-1.5 rounded text-sm border border-slate-200"
-                                />
-                            </div>
-                            <div className="col-span-full mt-2 pt-2 border-t border-slate-100">
                                 <label className="block text-[10px] uppercase tracking-wider text-slate-400 mb-1 font-bold">Speech Threshold (0.0 - 1.0)</label>
                                 <div className="flex items-center gap-3">
                                     <input

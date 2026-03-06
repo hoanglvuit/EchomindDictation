@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from "react";
-import { getSegment, showAnswer, saveProgress } from "../api";
+import { getSegment, showAnswer, saveProgress, saveVocab } from "../api";
 import VocabForm from "./VocabForm";
 
 export default function Exercise({
@@ -19,6 +19,8 @@ export default function Exercise({
     const [isPlaying, setIsPlaying] = useState(false);
     const [selectedWord, setSelectedWord] = useState(null);
     const [showVocab, setShowVocab] = useState(false);
+    const [wordPopup, setWordPopup] = useState(null);
+    const [quickSaved, setQuickSaved] = useState({});
     const [hint, setHint] = useState(null);
     const [currentTime, setCurrentTime] = useState(0);
     const [duration, setDuration] = useState(0);
@@ -268,11 +270,28 @@ export default function Exercise({
         }
     };
 
-    const handleWordClick = (word) => {
+    const handleWordClick = (word, e) => {
         const clean = word.replace(/[^a-zA-Z'-]/g, "");
         if (!clean) return;
+        const rect = e.target.getBoundingClientRect();
         setSelectedWord(clean);
+        setWordPopup({ word: clean, x: rect.left, y: rect.bottom + 4 });
+    };
+
+    const handleQuickSave = async (word) => {
+        try {
+            await saveVocab(word, "", [], "", "");
+            setQuickSaved((prev) => ({ ...prev, [word]: true }));
+            setWordPopup(null);
+            setTimeout(() => setQuickSaved((prev) => { const n = { ...prev }; delete n[word]; return n; }), 2000);
+        } catch (err) {
+            alert("Save failed: " + err.message);
+        }
+    };
+
+    const handleFullEdit = () => {
         setShowVocab(true);
+        setWordPopup(null);
     };
 
     const progressPct = ((currentIdx + 1) / totalSegments) * 100;
@@ -538,15 +557,18 @@ export default function Exercise({
                                 Answer: <span className="text-slate-300 text-[10px]">(click a word to save vocabulary)</span>
                             </div>
                             <div className="text-base text-slate-700 leading-relaxed flex flex-wrap gap-1">
-                                {answerText.split(/\s+/).map((word, i) => (
-                                    <span
-                                        key={i}
-                                        className={`word-clickable ${selectedWord === word.replace(/[^a-zA-Z'-]/g, "") ? "selected" : ""}`}
-                                        onClick={() => handleWordClick(word)}
-                                    >
-                                        {word}
-                                    </span>
-                                ))}
+                                {answerText.split(/\s+/).map((word, i) => {
+                                    const cleanW = word.replace(/[^a-zA-Z'-]/g, "");
+                                    return (
+                                        <span
+                                            key={i}
+                                            className={`word-clickable ${selectedWord === cleanW ? "selected" : ""} ${quickSaved[cleanW] ? "!bg-emerald-100 !text-emerald-600" : ""}`}
+                                            onClick={(e) => handleWordClick(word, e)}
+                                        >
+                                            {quickSaved[cleanW] ? `✓ ${word}` : word}
+                                        </span>
+                                    );
+                                })}
                             </div>
 
                             {!answeredCorrectly && (
@@ -576,6 +598,30 @@ export default function Exercise({
                 </div>
 
             </div>
+            {/* Word Quick-Save Popup */}
+            {wordPopup && (
+                <>
+                    <div className="fixed inset-0 z-40" onClick={() => setWordPopup(null)} />
+                    <div
+                        className="fixed z-50 bg-white rounded-xl shadow-2xl border border-slate-200 p-2 animate-fade-in flex gap-1.5"
+                        style={{ left: Math.min(wordPopup.x, window.innerWidth - 220), top: wordPopup.y }}
+                    >
+                        <button
+                            onClick={() => handleQuickSave(wordPopup.word)}
+                            className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-emerald-50 text-emerald-600 hover:bg-emerald-100 transition-all cursor-pointer whitespace-nowrap"
+                        >
+                            ⚡ Quick Save
+                        </button>
+                        <button
+                            onClick={handleFullEdit}
+                            className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-indigo-50 text-indigo-600 hover:bg-indigo-100 transition-all cursor-pointer whitespace-nowrap"
+                        >
+                            📝 Details
+                        </button>
+                    </div>
+                </>
+            )}
+
             {/* Vocab Form Modal */}
             {showVocab && selectedWord && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm animate-fade-in">

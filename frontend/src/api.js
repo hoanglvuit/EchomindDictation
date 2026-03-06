@@ -42,10 +42,6 @@ export function getAudioUrl(sessionName, filename) {
 export async function uploadAudio(file, vadParams = {}) {
     const formData = new FormData();
     formData.append("audio", file);
-    if (vadParams.max !== undefined) formData.append("vad_max", vadParams.max);
-    if (vadParams.min !== undefined) formData.append("vad_min", vadParams.min);
-    if (vadParams.k !== undefined) formData.append("vad_k", vadParams.k);
-    if (vadParams.t0 !== undefined) formData.append("vad_t0", vadParams.t0);
     if (vadParams.threshold !== undefined) formData.append("vad_threshold", vadParams.threshold);
 
     const resp = await fetch(`${API_BASE}/upload`, {

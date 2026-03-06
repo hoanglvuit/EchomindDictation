@@ -4,8 +4,8 @@ python-multipart
 numpy
 soundfile
 sherpa-onnx
-onnxruntime
-kaldi-native-fbank
 torch
 requests
 beautifulsoup4
+whisperx
+librosa

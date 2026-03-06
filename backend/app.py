@@ -5,7 +5,6 @@ Models are loaded on-demand and unloaded after processing to save RAM.
 
 import os
 import re
-import gc
 import tempfile
 
 
@@ -52,7 +51,6 @@ os.makedirs(SESSIONS_DIR, exist_ok=True)
 
 MODEL_DIR = os.path.join(BASE_DIR, "model")
 VAD_MODEL_PATH = os.path.join(MODEL_DIR, "vad", "silero_vad.onnx")
-ASR_DIR = os.path.join(MODEL_DIR, "asr")
 
 
 # ── Text normalization ──────────────────────────────────────
@@ -67,7 +65,7 @@ def normalize_text(text: str) -> str:
 
 def sanitize_name(name: str) -> str:
     name = os.path.splitext(name)[0]
-    name = re.sub(r'[<>:"/\\|?*]', "_", name)
+    name = re.sub(r'[<>:"/\\|?*#]', "_", name)
     return name.strip(". ") or "untitled"
 
 
@@ -198,11 +196,6 @@ def api_serve_audio(session_name: str, filename: str):
 @app.post("/upload")
 async def api_upload(
     audio: UploadFile = File(...),
-    vad_max: float = 1.0,
-    vad_min: float = 0.01,
-    vad_k: float = 2.0,
-    vad_t0: float = 2.5,
-    vad_threshold: float = 0.25,
 ):
     if not audio.filename:
         raise HTTPException(status_code=400, detail="No file selected")
@@ -231,34 +224,13 @@ async def api_upload(
     tmp.close()
 
     try:
-        from asr_engine import WhisperOnnxModel, load_tokens, process_audio
-
-        print("Loading models into RAM...")
-        asr_model = WhisperOnnxModel(
-            encoder_path=os.path.join(ASR_DIR, "distil-small.en-encoder.onnx"),
-            decoder_path=os.path.join(ASR_DIR, "distil-small.en-decoder.onnx"),
-        )
-        token_table = load_tokens(os.path.join(ASR_DIR, "distil-small.en-tokens.txt"))
-        print(f"Loaded {len(token_table)} tokens.")
+        from asr_engine import process_audio
 
         print(f"Processing: {audio.filename} -> session '{session_name}'")
         segments = process_audio(
             tmp.name,
-            VAD_MODEL_PATH,
-            asr_model,
-            token_table,
             session_dir,
-            vad_max,
-            vad_min,
-            vad_k,
-            vad_t0,
-            vad_threshold,
         )
-
-        del asr_model
-        del token_table
-        gc.collect()
-        print("Models unloaded from RAM.")
     finally:
         os.unlink(tmp.name)
 
