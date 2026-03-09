@@ -20,12 +20,14 @@ SAMPLE_RATE = 16000
 WHISPERX_MODEL = "medium.en"  # "base.en", "small.en"
 WHISPERX_DEVICE = "cpu"
 WHISPERX_COMPUTE_TYPE = "float32"
-WHISPERX_BATCH_SIZE = 4
+WHISPERX_BATCH_SIZE = 2
 
 # VAD config (pyannote inside WhisperX)
 VAD_ONSET = 0.5  # threshold to start speech detection
 VAD_OFFSET = 0.363  # threshold to end speech detection
 CHUNK_SIZE = 15  # max seconds per segment
+PAD_ONSET = 0.1  # pre-buffer in seconds (5 blocks × 512 samples / 16000)
+PAD_OFFSET = 0.05  # post-buffer in seconds
 
 
 def format_time(seconds):
@@ -117,9 +119,11 @@ def process_audio(file_path, session_dir):
         if not text:
             continue
 
-        # Cut audio
-        start_sample = int(start_sec * SAMPLE_RATE)
-        end_sample = int(end_sec * SAMPLE_RATE)
+        # Cut audio with pre/post buffer
+        buf_start = max(0, start_sec - PAD_ONSET)
+        buf_end = min(len(waveform) / SAMPLE_RATE, end_sec + PAD_OFFSET)
+        start_sample = int(buf_start * SAMPLE_RATE)
+        end_sample = int(buf_end * SAMPLE_RATE)
         audio_chunk = waveform[start_sample:end_sample]
 
         seg_idx = len(segments)
