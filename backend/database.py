@@ -215,11 +215,12 @@ def save_vocab(
 ) -> dict:
 
     now = datetime.now().isoformat()
-    today = date.today().isoformat()
+    today = date.today()
+    tomorrow = (today + timedelta(days=1)).isoformat()
     with get_db() as conn:
         cur = conn.execute(
             "INSERT INTO vocab (word, pronunciation, general_meaning, created_at, next_review, audio_url) VALUES (?, ?, ?, ?, ?, ?)",
-            (word, pronunciation, general_meaning, now, today, audio_url),
+            (word, pronunciation, general_meaning, now, tomorrow, audio_url),
         )
         vocab_id = cur.lastrowid
         for d in definitions:
