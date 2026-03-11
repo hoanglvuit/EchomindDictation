@@ -40,7 +40,14 @@ Khi bạn upload một file âm thanh, hệ thống sẽ:
 - Hỗ trợ "Hint" (gợi ý) từ tiếp theo nếu bạn gặp khó khăn.
 
 ### 3. Sổ tay từ vựng & Ôn tập lũy tiến (SM-2)
-- **Quick Save (MỚI v5)**: Click vào từ trong bài tập để lưu nhanh — không cần điền thông tin ngay, hoàn thành sau trong Vocabulary.
+- **Quick Save (v5)**: Click vào từ trong bài tập để lưu nhanh — không cần điền thông tin ngay, hoàn thành sau trong Vocabulary.
+- **Vocabulary Dashboard (MỚI v6)**: Giao diện quản lý từ vựng thông minh, tự động phân loại thành 3 nhóm:
+    - **Needs Details**: Từ mới lưu nhanh, chưa có định nghĩa (📝).
+    - **Due for Practice**: Từ đã đến hạn ôn tập (🧠).
+    - **Future Review**: Từ đã học và đang chờ đến lịch ôn tiếp theo (📅).
+- **Tối ưu hiệu năng (v6)**: 
+    - **Pagination (View More)**: Chỉ hiển thị 20 từ mỗi trang, giúp giao diện mượt mà ngay cả khi có hàng nghìn từ.
+    - **Fisher-Yates Shuffle**: Xáo trộn ngẫu nhiên tuyệt đối thứ tự từ vựng mỗi khi bắt đầu ôn tập, giúp tăng hiệu quả ghi nhớ.
 - **Full Edit**: Hoặc chọn "Details" để mở form điền đầy đủ phiên âm, nghĩa, ví dụ.
 - **Tích hợp Oxford Dictionary**: 
     - Tự động lấy **phiên âm (IPA)** và **âm thanh (US MP3)** khi nhập link từ Oxford.
@@ -109,6 +116,16 @@ english-listening/
 ---
 
 ## 📋 Changelog
+
+### Version 6 — Vocabulary Dashboard & Performance (MỚI)
+
+#### Thay đổi chính: Vocab Management
+| Tính năng | Mô tả |
+|---|---|
+| **Dashboard Phân loại** | Giao diện thẻ (Card) giúp quản lý từ vựng theo trạng thái: Cần bổ sung, Đến hạn ôn, Chờ ôn tập. |
+| **Pagination (View More)** | Tối ưu hóa việc hiển thị 20 từ mỗi lượt, giúp xử lý hàng nghìn từ vựng mà không gây lag. |
+| **Fisher-Yates Shuffle** | Xáo trộn ngẫu nhiên tuyệt đối các từ vựng trong bài tập Practice, tránh học vẹt theo thứ tự. |
+| **Navigation** | Bổ sung hệ thống chuyển đổi mượt mà giữa các mục phân loại và quay lại dashboard. |
 
 ### Version 5 — WhisperX Migration & Quick-Save Vocab
 

@@ -15,7 +15,16 @@ export default function VocabPractice({ onBack }) {
         try {
             setLoading(true);
             const data = await getVocabPractice();
-            setItems(data.items || []);
+            const rawItems = data.items || [];
+            
+            // Fisher-Yates shuffle
+            const shuffled = [...rawItems];
+            for (let i = shuffled.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+            }
+            
+            setItems(shuffled);
         } catch (err) {
             console.error("Failed to load practice:", err);
         } finally {

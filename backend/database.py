@@ -215,12 +215,21 @@ def save_vocab(
 ) -> dict:
 
     now = datetime.now().isoformat()
-    today = date.today()
-    tomorrow = (today + timedelta(days=1)).isoformat()
+
+    # Check if there's at least one non-empty definition
+    has_definitions = any(d.get("definition", "").strip() for d in definitions)
+
+    # If no definitions, next_review is empty (not due). Otherwise, tomorrow.
+    if has_definitions:
+        today = date.today()
+        next_review = (today + timedelta(days=1)).isoformat()
+    else:
+        next_review = ""
+
     with get_db() as conn:
         cur = conn.execute(
             "INSERT INTO vocab (word, pronunciation, general_meaning, created_at, next_review, audio_url) VALUES (?, ?, ?, ?, ?, ?)",
-            (word, pronunciation, general_meaning, now, tomorrow, audio_url),
+            (word, pronunciation, general_meaning, now, next_review, audio_url),
         )
         vocab_id = cur.lastrowid
         for d in definitions:
@@ -240,6 +249,7 @@ def save_vocab(
             "pronunciation": pronunciation,
             "general_meaning": general_meaning,
             "created_at": now,
+            "next_review": next_review,
         }
 
 
@@ -253,10 +263,31 @@ def update_vocab(
 ) -> bool:
 
     with get_db() as conn:
-        cur = conn.execute(
-            "UPDATE vocab SET word = ?, pronunciation = ?, general_meaning = ?, audio_url = ? WHERE id = ?",
-            (word, pronunciation, general_meaning, audio_url, vocab_id),
-        )
+        # Get current state to see if we need to initialize next_review
+        row = conn.execute(
+            "SELECT next_review FROM vocab WHERE id = ?", (vocab_id,)
+        ).fetchone()
+        if not row:
+            return False
+
+        current_next_review = row["next_review"]
+
+        # Check if we are adding definitions to a word that didn't have any
+        has_new_definitions = any(d.get("definition", "").strip() for d in definitions)
+
+        update_fields = [word, pronunciation, general_meaning, audio_url]
+        query = "UPDATE vocab SET word = ?, pronunciation = ?, general_meaning = ?, audio_url = ?"
+
+        if not current_next_review and has_new_definitions:
+            today = date.today()
+            next_review = (today + timedelta(days=1)).isoformat()
+            query += ", next_review = ?"
+            update_fields.append(next_review)
+
+        query += " WHERE id = ?"
+        update_fields.append(vocab_id)
+
+        cur = conn.execute(query, tuple(update_fields))
         if cur.rowcount == 0:
             return False
 
@@ -353,7 +384,7 @@ def get_due_vocab(today_str: str) -> list[dict]:
     with get_db() as conn:
         rows = conn.execute(
             """SELECT v.* FROM vocab v
-               WHERE v.next_review <= ?
+               WHERE v.next_review != '' AND v.next_review <= ?
                ORDER BY v.next_review ASC""",
             (today_str,),
         ).fetchall()
