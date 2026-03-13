@@ -1,6 +1,9 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { getSegment, showAnswer, saveProgress, saveVocab } from "../api";
 import VocabForm from "./VocabForm";
+import AudioControls from "./AudioControls";
+import SegmentHistory from "./SegmentHistory";
+
 
 export default function Exercise({
     sessionName,
@@ -306,49 +309,7 @@ export default function Exercise({
 
     return (
         <div className="min-h-screen py-10 px-4 relative overflow-x-hidden">
-            {/* Background History - Left Side */}
-            <div className="fixed right-[calc(50%+345px)] top-32 bottom-24 w-[550px] hidden lg:block overflow-y-auto scrollbar-hide text-right">
-                <div className="flex flex-col gap-16 py-6">
-                    {historyBlocks.filter((_, i) => i % 2 === 0).map((text, i) => (
-                        <div key={i} className="animate-fade-in group">
-                            <div className="text-[11px] leading-relaxed text-slate-700 font-bold opacity-60 hover:opacity-100 transition-opacity p-2">
-                                {text}
-                            </div>
-                            {i < Math.floor((historyBlocks.length - 1) / 2) && (
-                                <div className="mt-8 border-b border-slate-200/50 w-32 ml-auto" />
-                            )}
-                        </div>
-                    ))}
-                </div>
-            </div>
-
-            {/* Background History - Right Side */}
-            <div className="fixed left-[calc(50%+345px)] top-32 bottom-24 w-[550px] hidden lg:block overflow-y-auto scrollbar-hide text-left">
-                <div className="flex flex-col gap-16 py-6">
-                    {historyBlocks.filter((_, i) => i % 2 !== 0).map((text, i) => (
-                        <div key={i} className="animate-fade-in group">
-                            <div className="text-[11px] leading-relaxed text-slate-700 font-bold opacity-60 hover:opacity-100 transition-opacity p-2">
-                                {text}
-                            </div>
-                            {i < Math.floor(historyBlocks.length / 2 - 1) && (
-                                <div className="mt-8 border-b border-slate-200/50 w-32 mr-auto" />
-                            )}
-                        </div>
-                    ))}
-                </div>
-            </div>
-
-            {/* Mobile/Small Screen History - Horizontal scroll */}
-            <div className="lg:hidden max-w-2xl mx-auto mb-6 px-4">
-                <div className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-2 px-1">Recent Context</div>
-                <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
-                    {allSegments.slice(0, currentIdx).reverse().map((seg, i) => (
-                        <div key={i} className="flex-shrink-0 max-w-[200px] text-[10px] text-slate-700 font-bold bg-white/50 backdrop-blur-md p-2 rounded-xl border border-white/30 italic">
-                            {seg.transcript}
-                        </div>
-                    ))}
-                </div>
-            </div>
+            <SegmentHistory allSegments={allSegments} currentIdx={currentIdx} />
 
             <div className="animate-fade-in max-w-2xl mx-auto space-y-4 pt-6 relative z-10">
                 <div className="glass-card p-5">
@@ -379,65 +340,15 @@ export default function Exercise({
                         </div>
                     )}
 
-                    {/* Audio Controls */}
-                    <div className="flex justify-center items-center gap-4 mb-5">
-                        {!isPlaying ? (
-                            <button
-                                onClick={togglePlay}
-                                className="relative px-8 py-2.5 rounded-xl font-semibold text-sm bg-indigo-500 text-white shadow-lg shadow-indigo-500/30 hover:bg-indigo-600 transition-all duration-200 cursor-pointer flex items-center gap-2"
-                            >
-                                <span>▶</span> Play
-                            </button>
-                        ) : (
-                            <button
-                                onClick={togglePlay}
-                                className="relative px-8 py-2.5 rounded-xl font-semibold text-sm bg-amber-500 text-white shadow-lg shadow-amber-500/30 hover:bg-amber-600 transition-all duration-200 cursor-pointer flex items-center gap-2"
-                            >
-                                <span>⏸</span> Pause
-                            </button>
-                        )}
-
-                        <span className="text-xs text-slate-400 self-center">
-                            or press <kbd className="px-1.5 py-0.5 rounded bg-slate-100 text-xs border border-slate-200">Ctrl</kbd> to restart
-                        </span>
-                    </div>
-
-                    {/* Seekbar */}
-                    <div className="mb-5 space-y-1">
-                        <div className="flex items-center gap-2">
-                            <input
-                                type="range"
-                                min="0"
-                                max={duration || 0}
-                                step="0.01"
-                                value={currentTime}
-                                onChange={handleSeek}
-                                className="flex-1 h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-indigo-500"
-                            />
-                        </div>
-                        <div className="flex justify-between text-[10px] font-mono text-slate-400">
-                            <span>{formatSeconds(currentTime)}</span>
-                            <span>{formatSeconds(duration)}</span>
-                        </div>
-                    </div>
-
-                    {/* Speed Controls */}
-                    <div className="flex items-center justify-center gap-2 mb-6 p-2 rounded-xl bg-slate-50/50">
-                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mr-2">Speed:</span>
-                        {[0.5, 0.75, 1.0, 1.25, 1.5].map((rate) => (
-                            <button
-                                key={rate}
-                                onClick={() => handleSpeedChange(rate)}
-                                className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all
-                ${playbackRate === rate
-                                        ? "bg-white text-indigo-600 shadow-sm border border-indigo-100 scale-110"
-                                        : "text-slate-400 hover:text-slate-600 hover:bg-slate-100"
-                                    }`}
-                            >
-                                {rate}x
-                            </button>
-                        ))}
-                    </div>
+                    <AudioControls 
+                        isPlaying={isPlaying}
+                        onTogglePlay={togglePlay}
+                        currentTime={currentTime}
+                        duration={duration}
+                        onSeek={handleSeek}
+                        playbackRate={playbackRate}
+                        onSpeedChange={handleSpeedChange}
+                    />
 
                     {/* Input */}
                     <div className="mb-4">

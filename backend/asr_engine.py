@@ -7,7 +7,6 @@ then produces segments with timestamps for splitting.
 import os
 import gc
 
-import numpy as np
 import soundfile as sf
 import whisperx
 
@@ -26,7 +25,7 @@ WHISPERX_BATCH_SIZE = 2
 VAD_ONSET = 0.5  # threshold to start speech detection
 VAD_OFFSET = 0.363  # threshold to end speech detection
 CHUNK_SIZE = 15  # max seconds per segment
-PAD_ONSET = 0.1  # pre-buffer in seconds (5 blocks × 512 samples / 16000)
+PAD_ONSET = 0.05  # pre-buffer in seconds (5 blocks × 512 samples / 16000)
 PAD_OFFSET = 0.05  # post-buffer in seconds
 
 
@@ -48,15 +47,8 @@ def process_audio(file_path, session_dir):
 
     Returns list of segment dicts compatible with add_segments().
     """
-    # 1. Load audio for cutting later
-    waveform, sr = sf.read(file_path)
-    if waveform.ndim > 1:
-        waveform = np.mean(waveform, axis=1)
-    if sr != SAMPLE_RATE:
-        import librosa
-
-        waveform = librosa.resample(waveform, orig_sr=sr, target_sr=SAMPLE_RATE)
-    waveform = waveform.astype(np.float32)
+    # 1. Load audio (WhisperX returns 16kHz mono float32)
+    waveform = whisperx.load_audio(file_path)
 
     # 2. WhisperX transcription
     print(f"  Loading WhisperX model ({WHISPERX_MODEL})...")
