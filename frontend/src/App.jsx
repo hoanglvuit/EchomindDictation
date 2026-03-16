@@ -5,9 +5,11 @@ import Exercise from "./components/Exercise";
 import CompletionPage from "./components/CompletionPage";
 import VocabList from "./components/VocabList";
 import VocabPractice from "./components/VocabPractice";
+import GrammarList from "./components/GrammarList";
+import GrammarPractice from "./components/GrammarPractice";
 
 function App() {
-  const [page, setPage] = useState("home"); // home | exercise | complete | vocab | practice
+  const [page, setPage] = useState("home"); // home | exercise | complete | vocab | practice | grammar | grammar-practice
   const [sessions, setSessions] = useState([]);
   const [sessionName, setSessionName] = useState(null);
   const [totalSegments, setTotalSegments] = useState(0);
@@ -56,6 +58,7 @@ function App() {
           onStartSession={handleStartSession}
           onRefresh={fetchSessions}
           onOpenVocab={() => setPage("vocab")}
+          onOpenGrammar={() => setPage("grammar")}
         />
       )}
 
@@ -76,6 +79,10 @@ function App() {
       {page === "vocab" && <VocabList onBack={goHome} onPractice={() => setPage("practice")} />}
 
       {page === "practice" && <VocabPractice onBack={() => setPage("vocab")} />}
+
+      {page === "grammar" && <GrammarList onBack={goHome} onPractice={() => setPage("grammar-practice")} />}
+
+      {page === "grammar-practice" && <GrammarPractice onBack={() => setPage("grammar")} />}
     </div>
   );
 }

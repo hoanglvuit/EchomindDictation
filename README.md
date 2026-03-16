@@ -66,6 +66,12 @@ Khi bạn upload một file âm thanh, hệ thống sẽ:
     - Tự động hiển thị nút phát sau khi trả lời đúng trong lúc ôn tập để củng cố kỹ năng nghe.
 - **Thang điểm**: Linh hoạt dựa trên độ khó của hình thức kiểm tra (MCQ 1-2 điểm, Spelling 3-5 điểm).
 
+### 4. Hệ thống Ngữ pháp & Ôn tập (MỚI v7)
+- Danh sách cấu trúc ngữ pháp được quản lý với ý nghĩa và các ví dụ thực tế đi kèm.
+- **Tích hợp SM-2**: Ôn tập ngữ pháp mỗi lúc đến hạn với thuật toán Spaced Repetition tương tự như từ vựng.
+- **Bài tập Trắc nghiệm (MCQ)**: Dành cho các cấu trúc mới làm quen, chọn cấu trúc dựa trên ý nghĩa.
+- **Bài tập Điền khuyết (Spelling)**: Hiển thị gợi ý thông minh, ẩn một phần cấu trúc (Ví dụ: `___ + adj/adv + ___`) để rèn luyện trí nhớ và ép người dùng tự gõ lại.
+
 ---
 
 ## 🛠 Cấu trúc thư mục
@@ -112,12 +118,23 @@ english-listening/
 - **`segment`**: Chi tiết từng đoạn âm thanh (thời gian bắt đầu/kết thúc, transcript).
 - **`vocab`**: Sổ tay từ vựng với các chỉ số SM-2 (`easiness_factor`, `repetition`, `next_review`), link âm thanh (`audio_url`) và ý nghĩa cốt lõi (`general_meaning`).
 - **`vocab_definition`**: Lưu trữ đa định nghĩa, ví dụ thực tế và các mẫu câu thông dụng (`patterns`) cho mỗi từ.
+- **`grammar`**: Danh sách cấu trúc ngữ pháp với các chỉ số SM-2.
+- **`grammar_example`**: Các câu ví dụ thực tế cho từng cấu trúc ngữ pháp.
 
 ---
 
 ## 📋 Changelog
 
-### Version 6 — Vocabulary Dashboard & Performance (MỚI)
+### Version 7 — Grammar Feature (MỚI)
+
+#### Thay đổi chính: Grammar Management & Practice
+| Tính năng | Mô tả |
+|---|---|
+| **Quản lý Ngữ pháp** | Giao diện thêm, sửa, xóa cấu trúc ngữ pháp với ý nghĩa và danh sách câu ví dụ tự nhiên. |
+| **Ôn tập Ngữ pháp (SM-2)** | Tích hợp thuật toán lặp lại ngắt quãng (SM-2) riêng biệt cho danh sách ngữ pháp. |
+| **Bài tập Đa dạng** | Hỗ trợ 2 dạng bài ôn tập: Trắc nghiệm (chọn cấu trúc đúng) và Tự luận (điền khuyết cấu trúc dựa vào gợi ý / hint code sinh tự động). |
+
+### Version 6 — Vocabulary Dashboard & Performance
 
 #### Thay đổi chính: Vocab Management
 | Tính năng | Mô tả |

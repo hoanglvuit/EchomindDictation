@@ -8,6 +8,7 @@ import os
 import random
 import json
 import sqlite3
+import re
 from datetime import datetime, date, timedelta
 from typing import Optional
 from contextlib import contextmanager
@@ -56,6 +57,23 @@ CREATE TABLE IF NOT EXISTS vocab_definition (
     example         TEXT NOT NULL DEFAULT '',
     patterns        TEXT NOT NULL DEFAULT '[]'
 );
+
+CREATE TABLE IF NOT EXISTS grammar (
+    id              INTEGER PRIMARY KEY AUTOINCREMENT,
+    structure       TEXT NOT NULL,
+    meaning         TEXT NOT NULL,
+    created_at      TEXT NOT NULL,
+    easiness_factor REAL NOT NULL DEFAULT 2.5,
+    repetition      INTEGER NOT NULL DEFAULT 0,
+    interval_days   INTEGER NOT NULL DEFAULT 0,
+    next_review     TEXT NOT NULL DEFAULT ''
+);
+
+CREATE TABLE IF NOT EXISTS grammar_example (
+    id              INTEGER PRIMARY KEY AUTOINCREMENT,
+    grammar_id      INTEGER NOT NULL REFERENCES grammar(id) ON DELETE CASCADE,
+    example         TEXT NOT NULL DEFAULT ''
+);
 """
 
 # Migrations for existing databases (safe to re-run)
@@ -101,10 +119,14 @@ def init_db():
                 conn.execute(migration)
             except sqlite3.OperationalError:
                 pass  # Column already exists
-        # Backfill next_review for old vocab entries
+        # Backfill next_review for old vocab entries that have definitions
         today = date.today().isoformat()
         conn.execute(
-            "UPDATE vocab SET next_review = ? WHERE next_review = ''",
+            """UPDATE vocab SET next_review = ? 
+               WHERE next_review = '' AND EXISTS (
+                   SELECT 1 FROM vocab_definition vd 
+                   WHERE vd.vocab_id = vocab.id AND vd.definition != ''
+               )""",
             (today,),
         )
 
@@ -488,6 +510,210 @@ def update_vocab_sm2(vocab_id: int, quality: int) -> dict | None:
         return {
             "id": vocab_id,
             "word": v["word"],
+            "easiness_factor": round(new_ef, 2),
+            "repetition": new_rep,
+            "interval_days": new_interval,
+            "next_review": new_next_review,
+        }
+
+
+# ── Grammar helpers ─────────────────────────────────────────
+
+
+def save_grammar(
+    structure: str,
+    meaning: str,
+    examples: list[str],
+) -> dict:
+
+    now = datetime.now().isoformat()
+    # Always set next_review to tomorrow initially
+    today = date.today()
+    next_review = (today + timedelta(days=1)).isoformat()
+
+    with get_db() as conn:
+        cur = conn.execute(
+            "INSERT INTO grammar (structure, meaning, created_at, next_review) VALUES (?, ?, ?, ?)",
+            (structure, meaning, now, next_review),
+        )
+        grammar_id = cur.lastrowid
+        for ex in examples:
+            if ex.strip():
+                conn.execute(
+                    "INSERT INTO grammar_example (grammar_id, example) VALUES (?, ?)",
+                    (grammar_id, ex.strip()),
+                )
+        return {
+            "id": grammar_id,
+            "structure": structure,
+            "meaning": meaning,
+            "created_at": now,
+            "next_review": next_review,
+        }
+
+
+def update_grammar(
+    grammar_id: int,
+    structure: str,
+    meaning: str,
+    examples: list[str],
+) -> bool:
+
+    with get_db() as conn:
+        cur = conn.execute(
+            "UPDATE grammar SET structure = ?, meaning = ? WHERE id = ?",
+            (structure, meaning, grammar_id)
+        )
+        if cur.rowcount == 0:
+            return False
+
+        # Replace examples
+        conn.execute("DELETE FROM grammar_example WHERE grammar_id = ?", (grammar_id,))
+        for ex in examples:
+            if ex.strip():
+                conn.execute(
+                    "INSERT INTO grammar_example (grammar_id, example) VALUES (?, ?)",
+                    (grammar_id, ex.strip()),
+                )
+        return True
+
+
+def list_grammar() -> list[dict]:
+    with get_db() as conn:
+        rows = conn.execute("SELECT * FROM grammar ORDER BY created_at DESC").fetchall()
+        result = []
+        for row in rows:
+            g = dict(row)
+            ex_rows = conn.execute(
+                "SELECT example FROM grammar_example WHERE grammar_id = ?",
+                (g["id"],),
+            ).fetchall()
+            g["examples"] = [r["example"] for r in ex_rows]
+            result.append(g)
+        return result
+
+
+def delete_grammar(grammar_id: int) -> bool:
+    with get_db() as conn:
+        cur = conn.execute("DELETE FROM grammar WHERE id = ?", (grammar_id,))
+        return cur.rowcount > 0
+
+
+def get_grammar_count() -> int:
+    with get_db() as conn:
+        row = conn.execute("SELECT COUNT(*) as cnt FROM grammar").fetchone()
+        return row["cnt"]
+
+
+def get_random_grammar_structures(conn, exclude_id: int, count: int) -> list[dict]:
+    rows = conn.execute(
+        "SELECT id, structure FROM grammar WHERE id != ? ORDER BY RANDOM() LIMIT ?",
+        (exclude_id, count)
+    ).fetchall()
+    return [dict(r) for r in rows]
+
+
+def _create_spelling_hint(structure: str) -> str:
+    """
+    Strips punctuation from structure (except '/'),
+    and then randomly reveals EXACTLY ONE token, hiding the rest.
+    Example: 'so + adj/adv + that' -> tokens: ['so', 'adj/adv', 'that'].
+    If 'that' is revealed -> '___ ___/___ that'
+    """
+    # Remove spaces around slashes so 'adj / adv' becomes 'adj/adv'
+    structure = re.sub(r'\s*/\s*', '/', structure)
+    text = re.sub(r'[^a-zA-Z0-9\s/]', ' ', structure)
+    tokens = [t for t in text.split() if t]
+    
+    if not tokens:
+        return "___"
+    
+    reveal_idx = random.randint(0, len(tokens) - 1)
+    
+    hint_tokens = []
+    for i, token in enumerate(tokens):
+        if i == reveal_idx:
+            hint_tokens.append(token)
+        else:
+            if '/' in token:
+                parts = token.split('/')
+                hint_tokens.append('/'.join(["___"] * len(parts)))
+            else:
+                hint_tokens.append("___")
+                
+    return " ".join(hint_tokens)
+
+
+def get_due_grammar(today_str: str) -> list[dict]:
+    with get_db() as conn:
+        rows = conn.execute(
+            """SELECT * FROM grammar
+               WHERE next_review != '' AND next_review <= ?
+               ORDER BY next_review ASC""",
+            (today_str,),
+        ).fetchall()
+
+        total_grammar = get_grammar_count()
+        result = []
+
+        for row in rows:
+            g = dict(row)
+            ex_rows = conn.execute(
+                "SELECT example FROM grammar_example WHERE grammar_id = ?",
+                (g["id"],),
+            ).fetchall()
+            g["examples"] = [r["example"] for r in ex_rows]
+
+            # Assign quiz type
+            if g["repetition"] < 2 and total_grammar >= 4:
+                g["quiz_type"] = "mcq"
+                distractors = get_random_grammar_structures(conn, g["id"], 3)
+                if len(distractors) < 3:
+                    # Fallback to spelling
+                    g["quiz_type"] = "spelling"
+                    g["hint"] = _create_spelling_hint(g["structure"])
+                else:
+                    options = [{"structure": g["structure"], "correct": True}]
+                    for dist in distractors:
+                        options.append({"structure": dist["structure"], "correct": False})
+                    random.shuffle(options)
+                    g["options"] = options
+            else:
+                g["quiz_type"] = "spelling"
+                g["hint"] = _create_spelling_hint(g["structure"])
+
+            result.append(g)
+
+        return result
+
+
+def update_grammar_sm2(grammar_id: int, quality: int) -> dict | None:
+    with get_db() as conn:
+        row = conn.execute("SELECT * FROM grammar WHERE id = ?", (grammar_id,)).fetchone()
+        if not row:
+            return None
+        g = dict(row)
+
+        new_ef, new_rep, new_interval = sm2_update(
+            quality=quality,
+            easiness_factor=g["easiness_factor"],
+            repetition=g["repetition"],
+            interval_days=g["interval_days"],
+        )
+
+        new_next_review = (date.today() + timedelta(days=new_interval)).isoformat()
+
+        conn.execute(
+            """UPDATE grammar
+               SET easiness_factor = ?, repetition = ?,
+                   interval_days = ?, next_review = ?
+               WHERE id = ?""",
+            (new_ef, new_rep, new_interval, new_next_review, grammar_id),
+        )
+
+        return {
+            "id": grammar_id,
+            "structure": g["structure"],
             "easiness_factor": round(new_ef, 2),
             "repetition": new_rep,
             "interval_days": new_interval,

@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-export default function MCQQuestion({ item, onAnswer }) {
+export default function MCQQuestion({ item, onAnswer, onEdit }) {
     const [selected, setSelected] = useState(null);
     const [attempts, setAttempts] = useState(0);
     const [resolved, setResolved] = useState(false);
@@ -143,6 +143,15 @@ export default function MCQQuestion({ item, onAnswer }) {
                                 title="Play audio"
                             >
                                 🔊
+                            </button>
+                        )}
+                        {onEdit && (
+                            <button
+                                onClick={onEdit}
+                                className="w-8 h-8 rounded-lg text-slate-400 hover:text-indigo-500 hover:bg-indigo-100 flex items-center justify-center transition-all cursor-pointer text-sm"
+                                title="Edit"
+                            >
+                                ✎
                             </button>
                         )}
                         {item.pronunciation && (

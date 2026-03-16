@@ -1,7 +1,7 @@
 import { useState, useRef } from "react";
 import { uploadAudio, loadSession, deleteSession } from "../api";
 
-export default function HomePage({ sessions, onStartSession, onRefresh, onOpenVocab }) {
+export default function HomePage({ sessions, onStartSession, onRefresh, onOpenVocab, onOpenGrammar }) {
     const [file, setFile] = useState(null);
     const [uploading, setUploading] = useState(false);
     const [dragOver, setDragOver] = useState(false);
@@ -51,15 +51,25 @@ export default function HomePage({ sessions, onStartSession, onRefresh, onOpenVo
                     Practice your English listening skills with AI-powered dictation
                 </p>
 
-                {/* Vocab button */}
-                <button
-                    onClick={onOpenVocab}
-                    className="mt-3 px-5 py-2 rounded-full text-sm font-medium
-            bg-violet-100 text-violet-600 hover:bg-violet-200 hover:text-violet-700
-            transition-all duration-200 cursor-pointer inline-flex items-center gap-1.5"
-                >
-                    📖 My Vocabulary
-                </button>
+                {/* Vocab & Grammar buttons */}
+                <div className="flex items-center justify-center gap-3 mt-4">
+                    <button
+                        onClick={onOpenVocab}
+                        className="px-5 py-2 rounded-full text-sm font-medium
+                bg-violet-100 text-violet-600 hover:bg-violet-200 hover:text-violet-700
+                transition-all duration-200 cursor-pointer inline-flex items-center gap-1.5 shadow-sm"
+                    >
+                        📖 My Vocabulary
+                    </button>
+                    <button
+                        onClick={onOpenGrammar}
+                        className="px-5 py-2 rounded-full text-sm font-medium
+                bg-blue-100 text-blue-600 hover:bg-blue-200 hover:text-blue-700
+                transition-all duration-200 cursor-pointer inline-flex items-center gap-1.5 shadow-sm"
+                    >
+                        🧩 Grammar Rules
+                    </button>
+                </div>
             </div>
 
             {/* Past Sessions */}

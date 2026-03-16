@@ -11,7 +11,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from database import init_db
 
-from routers import sessions, vocab, evaluation
+from routers import sessions, vocab, evaluation, grammar
 
 @asynccontextmanager
 async def lifespan(app):
@@ -32,6 +32,7 @@ app.add_middleware(
 app.include_router(sessions.router)
 app.include_router(vocab.router)
 app.include_router(evaluation.router)
+app.include_router(grammar.router)
 
 if __name__ == "__main__":
     import uvicorn

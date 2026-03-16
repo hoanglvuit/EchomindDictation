@@ -127,3 +127,38 @@ export async function submitVocabPractice(vocabId, quality) {
         body: JSON.stringify({ vocab_id: vocabId, quality }),
     });
 }
+
+// --- Grammar APIs ---
+
+export async function saveGrammar(structure, meaning, examples) {
+    return request("/grammar", {
+        method: "POST",
+        body: JSON.stringify({ structure, meaning, examples }),
+    });
+}
+
+export async function updateGrammar(id, structure, meaning, examples) {
+    return request(`/grammar/${id}`, {
+        method: "PUT",
+        body: JSON.stringify({ structure, meaning, examples }),
+    });
+}
+
+export async function listGrammar() {
+    return request("/grammar");
+}
+
+export async function deleteGrammar(id) {
+    return request(`/grammar/${id}`, { method: "DELETE" });
+}
+
+export async function getGrammarPractice() {
+    return request("/grammar/practice");
+}
+
+export async function submitGrammarPractice(grammarId, quality) {
+    return request("/grammar/practice/submit", {
+        method: "POST",
+        body: JSON.stringify({ grammar_id: grammarId, quality }),
+    });
+}
