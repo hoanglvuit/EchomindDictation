@@ -1,7 +1,7 @@
 import { useState, useRef } from "react";
 import { uploadAudio, loadSession, deleteSession } from "../api";
 
-export default function HomePage({ sessions, onStartSession, onRefresh, onOpenVocab, onOpenGrammar }) {
+export default function HomePage({ sessions, onStartSession, onRefresh, onOpenVocab, onOpenGrammar, onOpenListeningVocab }) {
     const [file, setFile] = useState(null);
     const [uploading, setUploading] = useState(false);
     const [dragOver, setDragOver] = useState(false);
@@ -68,6 +68,14 @@ export default function HomePage({ sessions, onStartSession, onRefresh, onOpenVo
                 transition-all duration-200 cursor-pointer inline-flex items-center gap-1.5 shadow-sm"
                     >
                         🧩 Grammar Rules
+                    </button>
+                    <button
+                        onClick={onOpenListeningVocab}
+                        className="px-5 py-2 rounded-full text-sm font-medium
+                bg-orange-100 text-orange-600 hover:bg-orange-200 hover:text-orange-700
+                transition-all duration-200 cursor-pointer inline-flex items-center gap-1.5 shadow-sm"
+                    >
+                        🎧 Listening Vocab
                     </button>
                 </div>
             </div>

@@ -72,6 +72,12 @@ Khi bạn upload một file âm thanh, hệ thống sẽ:
 - **Bài tập Trắc nghiệm (MCQ)**: Dành cho các cấu trúc mới làm quen, chọn cấu trúc dựa trên ý nghĩa.
 - **Bài tập Điền khuyết (Spelling)**: Hiển thị gợi ý thông minh, ẩn một phần cấu trúc (Ví dụ: `___ + adj/adv + ___`) để rèn luyện trí nhớ và ép người dùng tự gõ lại.
 
+### 5. Từ vựng luyện Nghe - "Miss Listening" (MỚI v8)
+- Hỗ trợ lưu trữ nhanh các từ vựng "quen mặt nhưng lạ tai" (nhìn biết nghĩa nhưng nghe không nhận ra).
+- **Listening Save**: Thêm nút lưu nhanh riêng biệt trong màn hình luyện nghe, tự động fetch audio từ Oxford.
+- **Quản lý riêng biệt**: Trang quản lý từ vựng nghe độc lập, giúp tập trung vào mục tiêu duy nhất: nhận diện âm thanh.
+- **Luyện tập bằng Audio**: Kiểm tra hoàn toàn bằng cách nghe phát âm và tự gõ lại từ (Spelling). Cung cấp 5 lần thử sai với số điểm giảm dần (5 điểm -> 1 điểm) và hệ thống gợi ý từng chữ cái trực quan. Tích hợp thuật toán SM-2 để lên lịch ôn tập.
+
 ---
 
 ## 🛠 Cấu trúc thư mục
@@ -120,12 +126,22 @@ english-listening/
 - **`vocab_definition`**: Lưu trữ đa định nghĩa, ví dụ thực tế và các mẫu câu thông dụng (`patterns`) cho mỗi từ.
 - **`grammar`**: Danh sách cấu trúc ngữ pháp với các chỉ số SM-2.
 - **`grammar_example`**: Các câu ví dụ thực tế cho từng cấu trúc ngữ pháp.
+- **`listening_vocab`**: Bảng dữ liệu dành riêng cho "Miss Listening", chứa từ vựng và link âm thanh (chủ yếu luyện phản xạ tiếng).
 
 ---
 
 ## 📋 Changelog
 
-### Version 7 — Grammar Feature (MỚI)
+### Version 8 — Miss Listening Feature (MỚI)
+
+#### Thay đổi chính: Listening Vocabulary Management & Practice
+| Tính năng | Mô tả |
+|---|---|
+| **Listening Save** | Thêm nút quick-save chuyên dụng "🎧 Listening" bên cạnh "⚡ Quick Save" trong lúc chép chính tả, tự động cào link phát âm tiếng Anh chuẩn từ Oxford qua tên từ vựng. |
+| **Quản lý "Miss Listening"** | Giao diện riêng biệt cho Vocabulary dạng Listening, tách biệt với từ vựng học full 4 kỹ năng. |
+| **Audio-only Practice (SM-2)** | Cơ chế Practice mới: Phát voice và bắt điền từ đúng (cho phép tối đa 5 lần làm, hỗ trợ báo lỗi theo từng ký tự, lần đầu đúng 5đ, giảm dần tới lần thứ 5 là 1đ, hết 5 lần sai nhận 0đ). Quản lý lịch ôn tập qua hệ thống SM-2 Spaced Repetition. |
+
+### Version 7 — Grammar Feature (Cũ)
 
 #### Thay đổi chính: Grammar Management & Practice
 | Tính năng | Mô tả |

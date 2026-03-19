@@ -162,3 +162,45 @@ export async function submitGrammarPractice(grammarId, quality) {
         body: JSON.stringify({ grammar_id: grammarId, quality }),
     });
 }
+
+// --- Listening Vocab APIs ---
+
+export async function saveListeningVocab(word, audio_url) {
+    return request("/listening-vocab", {
+        method: "POST",
+        body: JSON.stringify({ word, audio_url }),
+    });
+}
+
+export async function listListeningVocab() {
+    return request("/listening-vocab");
+}
+
+export async function updateListeningVocab(id, word, audio_url) {
+    return request(`/listening-vocab/${id}`, {
+        method: "PUT",
+        body: JSON.stringify({ word, audio_url }),
+    });
+}
+
+export async function deleteListeningVocab(id) {
+    return request(`/listening-vocab/${id}`, { method: "DELETE" });
+}
+
+export async function scrapeListeningVocab(url) {
+    return request("/listening-vocab/scrape", {
+        method: "POST",
+        body: JSON.stringify({ url }),
+    });
+}
+
+export async function getListeningPractice() {
+    return request("/listening-vocab/practice");
+}
+
+export async function submitListeningPractice(id, quality) {
+    return request("/listening-vocab/practice/submit", {
+        method: "POST",
+        body: JSON.stringify({ id, quality }),
+    });
+}

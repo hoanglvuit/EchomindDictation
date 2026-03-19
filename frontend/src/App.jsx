@@ -7,9 +7,11 @@ import VocabList from "./components/VocabList";
 import VocabPractice from "./components/VocabPractice";
 import GrammarList from "./components/GrammarList";
 import GrammarPractice from "./components/GrammarPractice";
+import ListeningVocabList from "./components/ListeningVocabList";
+import ListeningPractice from "./components/ListeningPractice";
 
 function App() {
-  const [page, setPage] = useState("home"); // home | exercise | complete | vocab | practice | grammar | grammar-practice
+  const [page, setPage] = useState("home"); // home | exercise | complete | vocab | practice | grammar | grammar-practice | listening-vocab | listening-practice
   const [sessions, setSessions] = useState([]);
   const [sessionName, setSessionName] = useState(null);
   const [totalSegments, setTotalSegments] = useState(0);
@@ -59,6 +61,7 @@ function App() {
           onRefresh={fetchSessions}
           onOpenVocab={() => setPage("vocab")}
           onOpenGrammar={() => setPage("grammar")}
+          onOpenListeningVocab={() => setPage("listening-vocab")}
         />
       )}
 
@@ -83,6 +86,10 @@ function App() {
       {page === "grammar" && <GrammarList onBack={goHome} onPractice={() => setPage("grammar-practice")} />}
 
       {page === "grammar-practice" && <GrammarPractice onBack={() => setPage("grammar")} />}
+
+      {page === "listening-vocab" && <ListeningVocabList onBack={goHome} onPractice={() => setPage("listening-practice")} />}
+
+      {page === "listening-practice" && <ListeningPractice onBack={() => setPage("listening-vocab")} />}
     </div>
   );
 }

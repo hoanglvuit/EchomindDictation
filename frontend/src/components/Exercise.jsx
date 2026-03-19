@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from "react";
-import { getSegment, showAnswer, saveProgress, saveVocab } from "../api";
+import { getSegment, showAnswer, saveProgress, saveVocab, scrapeListeningVocab, saveListeningVocab } from "../api";
 import VocabForm from "./VocabForm";
 import AudioControls from "./AudioControls";
 import SegmentHistory from "./SegmentHistory";
@@ -297,6 +297,19 @@ export default function Exercise({
         setWordPopup(null);
     };
 
+    const handleListeningSave = async (word) => {
+        try {
+            const oxfordUrl = `https://www.oxfordlearnersdictionaries.com/definition/english/${word.toLowerCase()}`;
+            const data = await scrapeListeningVocab(oxfordUrl);
+            await saveListeningVocab(word, data.audio_url || "");
+            setQuickSaved((prev) => ({ ...prev, [word]: "listening" }));
+            setWordPopup(null);
+            setTimeout(() => setQuickSaved((prev) => { const n = { ...prev }; delete n[word]; return n; }), 2000);
+        } catch (err) {
+            alert("Listening save failed: " + err.message);
+        }
+    };
+
     const progressPct = ((currentIdx + 1) / totalSegments) * 100;
 
     const segmentsPerBlock = 50;
@@ -522,6 +535,12 @@ export default function Exercise({
                             className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-emerald-50 text-emerald-600 hover:bg-emerald-100 transition-all cursor-pointer whitespace-nowrap"
                         >
                             ⚡ Quick Save
+                        </button>
+                        <button
+                            onClick={() => handleListeningSave(wordPopup.word)}
+                            className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-orange-50 text-orange-600 hover:bg-orange-100 transition-all cursor-pointer whitespace-nowrap"
+                        >
+                            🎧 Listening
                         </button>
                         <button
                             onClick={handleFullEdit}
