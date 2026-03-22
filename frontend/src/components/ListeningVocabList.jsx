@@ -2,6 +2,16 @@ import { useState, useEffect, useCallback } from "react";
 import { listListeningVocab, deleteListeningVocab, saveListeningVocab, scrapeListeningVocab } from "../api";
 
 export default function ListeningVocabList({ onBack, onPractice }) {
+    const parseAudios = (audioStr) => {
+        if (!audioStr) return [];
+        try {
+            const parsed = JSON.parse(audioStr);
+            if (Array.isArray(parsed)) return parsed;
+            return [{ pos: '', audio_url: audioStr }];
+        } catch {
+            return [{ pos: '', audio_url: audioStr }];
+        }
+    };
     const [items, setItems] = useState([]);
     const [loading, setLoading] = useState(true);
     const [showAdd, setShowAdd] = useState(false);
@@ -96,16 +106,25 @@ export default function ListeningVocabList({ onBack, onPractice }) {
                             <div key={v.id} className="flex items-center justify-between p-3 rounded-lg bg-orange-50/60 hover:bg-orange-100/80 transition-all duration-200">
                                 <div className="flex items-center gap-3 min-w-0 flex-1">
                                     <span className="text-sm font-semibold text-slate-700">{v.word}</span>
-                                    {v.audio_url && (
-                                        <button
-                                            onClick={() => new Audio(v.audio_url).play()}
-                                            className="w-7 h-7 rounded-lg bg-orange-100 text-orange-500 flex items-center justify-center
-                                                hover:bg-orange-200 transition-all cursor-pointer text-xs flex-shrink-0"
-                                            title="Play audio"
-                                        >
-                                            🔊
-                                        </button>
-                                    )}
+                                    <div className="flex items-center gap-2 flex-wrap">
+                                        {parseAudios(v.audio_url).map((a, i) => a.audio_url && (
+                                            <div key={i} className="flex items-center gap-1 bg-orange-50 rounded pl-1.5 pr-0.5 border border-orange-100">
+                                                {a.pos && a.pos !== "unknown" && (
+                                                    <span className="text-[10px] font-bold text-orange-600/70 uppercase">
+                                                        {a.pos.substring(0, 3)}
+                                                    </span>
+                                                )}
+                                                <button
+                                                    onClick={() => new Audio(a.audio_url).play()}
+                                                    className="w-6 h-6 rounded text-orange-500 flex items-center justify-center
+                                                        hover:bg-orange-200 transition-all cursor-pointer text-xs flex-shrink-0"
+                                                    title={`Play audio (${a.pos || 'unknown'})`}
+                                                >
+                                                    🔊
+                                                </button>
+                                            </div>
+                                        ))}
+                                    </div>
                                     {!v.audio_url && (
                                         <span className="text-[10px] text-rose-400 bg-rose-50 px-1.5 py-0.5 rounded">No audio</span>
                                     )}
@@ -143,7 +162,7 @@ export default function ListeningVocabList({ onBack, onPractice }) {
 function AddListeningVocabModal({ onClose, onSaved }) {
     const [word, setWord] = useState("");
     const [oxfordUrl, setOxfordUrl] = useState("");
-    const [audioUrl, setAudioUrl] = useState("");
+    const [audios, setAudios] = useState([]); // [{pos, audio_url}]
     const [fetching, setFetching] = useState(false);
     const [saving, setSaving] = useState(false);
 
@@ -153,7 +172,8 @@ function AddListeningVocabModal({ onClose, onSaved }) {
         setFetching(true);
         try {
             const data = await scrapeListeningVocab(url);
-            if (data.audio_url) setAudioUrl(data.audio_url);
+            if (data.audios) setAudios(data.audios);
+            else if (data.audio_url) setAudios([{pos: '', audio_url: data.audio_url}]);
         } catch (err) {
             console.error("Failed to scrape:", err);
         } finally {
@@ -165,7 +185,8 @@ function AddListeningVocabModal({ onClose, onSaved }) {
         if (!word.trim()) { alert("Please enter a word."); return; }
         setSaving(true);
         try {
-            await saveListeningVocab(word.trim(), audioUrl || null);
+            const audioData = audios.length > 0 ? JSON.stringify(audios) : null;
+            await saveListeningVocab(word.trim(), audioData);
             onSaved();
         } catch (err) {
             alert("Save failed: " + err.message);
@@ -214,21 +235,37 @@ function AddListeningVocabModal({ onClose, onSaved }) {
                     </div>
 
                     <div>
-                        <label className="block text-xs text-slate-500 mb-1 font-medium">Audio URL</label>
-                        <div className="flex gap-2">
-                            <input type="text" value={audioUrl} onChange={(e) => setAudioUrl(e.target.value)}
-                                placeholder="MP3 link..."
-                                className="flex-1 px-3 py-2 rounded-lg bg-white border border-slate-200 text-sm text-slate-700
-                                    placeholder:text-slate-300 hover:border-orange-300 transition-all"
-                            />
-                            {audioUrl && (
-                                <button onClick={() => new Audio(audioUrl).play()}
-                                    className="w-10 h-10 rounded-lg bg-orange-50 text-orange-500 flex items-center justify-center
-                                        hover:bg-orange-100 transition-all cursor-pointer"
-                                    title="Test audio"
-                                >🔊</button>
-                            )}
-                        </div>
+                        <label className="block text-xs text-slate-500 mb-1 font-medium">Audio URLs ({audios.length})</label>
+                        {audios.length === 0 ? (
+                            <div className="text-xs text-slate-400 italic">No audio loaded. Fetch from Oxford or leave blank.</div>
+                        ) : (
+                            <div className="space-y-2 max-h-32 overflow-y-auto pr-1 custom-scrollbar">
+                                {audios.map((a, i) => (
+                                    <div key={i} className="flex gap-2">
+                                        <input type="text" value={a.pos} onChange={(e) => {
+                                                const newA = [...audios]; newA[i].pos = e.target.value; setAudios(newA);
+                                            }}
+                                            className="w-20 px-2 py-1.5 rounded-lg bg-white border border-slate-200 text-xs text-slate-700" 
+                                            placeholder="POS"
+                                        />
+                                        <input type="text" value={a.audio_url} onChange={(e) => {
+                                                const newA = [...audios]; newA[i].audio_url = e.target.value; setAudios(newA);
+                                            }}
+                                            className="flex-1 px-2 py-1.5 rounded-lg bg-white border border-slate-200 text-xs text-slate-700"
+                                        />
+                                        <button onClick={() => new Audio(a.audio_url).play()}
+                                            className="w-8 h-8 rounded-lg bg-orange-50 text-orange-500 flex items-center justify-center hover:bg-orange-100"
+                                        >🔊</button>
+                                        <button onClick={() => setAudios(audios.filter((_, idx) => idx !== i))}
+                                            className="w-8 h-8 rounded-lg bg-rose-50 text-rose-500 flex items-center justify-center hover:bg-rose-100 text-xs font-bold"
+                                        >×</button>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                        <button onClick={() => setAudios([...audios, {pos: 'unknown', audio_url: ''}])}
+                            className="text-xs text-indigo-500 font-medium hover:text-indigo-600 mt-2"
+                        >+ Add Audio manually</button>
                     </div>
 
                     <button onClick={handleSave} disabled={saving || !word.trim()}

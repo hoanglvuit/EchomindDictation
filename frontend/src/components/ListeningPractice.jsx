@@ -39,13 +39,32 @@ export default function ListeningPractice({ onBack }) {
 
     useEffect(() => { fetchPractice(); }, [fetchPractice]);
 
-    const playAudio = useCallback(() => {
+    const parseAudios = (audioStr) => {
+        if (!audioStr) return [];
+        try {
+            const parsed = JSON.parse(audioStr);
+            if (Array.isArray(parsed)) return parsed.filter(a => a.audio_url);
+            return [{ pos: '', audio_url: audioStr }];
+        } catch {
+            return [{ pos: '', audio_url: audioStr }];
+        }
+    };
+
+    const playAudio = useCallback((specificUrl = null) => {
         const current = items[currentIdx];
         if (!current?.audio_url) return;
+        
+        let urlToPlay = specificUrl;
+        if (!urlToPlay) {
+            const audios = parseAudios(current.audio_url);
+            if (audios.length === 0) return;
+            urlToPlay = audios[0].audio_url;
+        }
+
         if (audioRef.current) {
             audioRef.current.pause();
         }
-        const audio = new Audio(current.audio_url);
+        const audio = new Audio(urlToPlay);
         audioRef.current = audio;
         audio.play().catch(() => {});
     }, [items, currentIdx]);
@@ -280,12 +299,16 @@ export default function ListeningPractice({ onBack }) {
                     <div className="text-xs text-orange-400 font-medium mb-3">
                         🎧 Listen and type the word:
                     </div>
-                    <button onClick={playAudio}
-                        className="px-8 py-3 rounded-xl text-lg font-semibold bg-gradient-to-r from-orange-500 to-amber-500
-                            text-white hover:from-orange-600 hover:to-amber-600 transition-all cursor-pointer shadow-lg shadow-orange-500/20"
-                    >
-                        🔊 Play Audio
-                    </button>
+                    <div className="flex flex-wrap justify-center gap-3">
+                        {current && parseAudios(current.audio_url).map((a, i) => (
+                            <button key={i} onClick={() => playAudio(a.audio_url)}
+                                className="px-6 py-2.5 rounded-xl text-base font-semibold bg-gradient-to-r from-orange-500 to-amber-500
+                                    text-white hover:from-orange-600 hover:to-amber-600 transition-all cursor-pointer shadow-sm"
+                            >
+                                🔊 Play {a.pos && a.pos !== "unknown" ? `(${a.pos.substring(0,3).toUpperCase()})` : ""}
+                            </button>
+                        ))}
+                    </div>
                     {!resolved && (
                         <div className="mt-3 text-xs text-slate-400">
                             Attempts remaining: <span className="font-bold text-orange-500">{remainingAttempts}</span> / 5

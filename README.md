@@ -66,17 +66,17 @@ Khi bạn upload một file âm thanh, hệ thống sẽ:
     - Tự động hiển thị nút phát sau khi trả lời đúng trong lúc ôn tập để củng cố kỹ năng nghe.
 - **Thang điểm**: Linh hoạt dựa trên độ khó của hình thức kiểm tra (MCQ 1-2 điểm, Spelling 3-5 điểm).
 
-### 4. Hệ thống Ngữ pháp & Ôn tập (MỚI v7)
+### 4. Hệ thống Ngữ pháp & Ôn tập (v7, Update v9)
 - Danh sách cấu trúc ngữ pháp được quản lý với ý nghĩa và các ví dụ thực tế đi kèm.
 - **Tích hợp SM-2**: Ôn tập ngữ pháp mỗi lúc đến hạn với thuật toán Spaced Repetition tương tự như từ vựng.
 - **Bài tập Trắc nghiệm (MCQ)**: Dành cho các cấu trúc mới làm quen, chọn cấu trúc dựa trên ý nghĩa.
-- **Bài tập Điền khuyết (Spelling)**: Hiển thị gợi ý thông minh, ẩn một phần cấu trúc (Ví dụ: `___ + adj/adv + ___`) để rèn luyện trí nhớ và ép người dùng tự gõ lại.
+- **Bài tập Điền khuyết (Spelling Fill-in-the-blanks)**: Giao diện điền ô vuông tách biệt cho từng từ. Tự động nhóm các từ thay thế (cách nhau bởi dấu `/`) để dễ nhận biết. Hệ thống tự động điền sẵn (hint) ngẫu nhiên 1/4 số ô để gợi ý định dạng cấu trúc, hỗ trợ Auto-focus mượt mà bằng phím Space/Backspace.
 
 ### 5. Từ vựng luyện Nghe - "Miss Listening" (MỚI v8)
 - Hỗ trợ lưu trữ nhanh các từ vựng "quen mặt nhưng lạ tai" (nhìn biết nghĩa nhưng nghe không nhận ra).
-- **Listening Save**: Thêm nút lưu nhanh riêng biệt trong màn hình luyện nghe, tự động fetch audio từ Oxford.
-- **Quản lý riêng biệt**: Trang quản lý từ vựng nghe độc lập, giúp tập trung vào mục tiêu duy nhất: nhận diện âm thanh.
-- **Luyện tập bằng Audio**: Kiểm tra hoàn toàn bằng cách nghe phát âm và tự gõ lại từ (Spelling). Cung cấp 5 lần thử sai với số điểm giảm dần (5 điểm -> 1 điểm) và hệ thống gợi ý từng chữ cái trực quan. Tích hợp thuật toán SM-2 để lên lịch ôn tập.
+- **Listening Save**: Trong màn hình luyện nghe, click vào từ sẽ hiện popup với nút "🎧 Listening". Chức năng này sẽ tự động dò tìm web Oxford và cào **toàn bộ** các cách phát âm của từ đó (như danh từ, động từ, tính từ) để lưu lại một cách tự động.
+- **Quản lý riêng biệt**: Trang quản lý từ vựng nghe độc lập, giúp tập trung vào mục tiêu duy nhất: nhận diện âm thanh. Mỗi từ vựng có thể hiện nhiều nút loa (tương ứng với các loại từ khác nhau).
+- **Luyện tập bằng Audio**: Kiểm tra hoàn toàn bằng cách nghe phát âm và tự gõ lại từ (Spelling). Có chế độ tự động phát ngẫu nhiên một trong các cách đọc của từ. Cung cấp tối đa 5 lần thử sai với số điểm giảm dần (5 điểm -> 1 điểm) và hệ thống gợi ý từng chữ cái trực quan. Tích hợp thuật toán SM-2 để lên lịch ôn tập.
 
 ---
 
@@ -132,13 +132,22 @@ english-listening/
 
 ## 📋 Changelog
 
-### Version 8 — Miss Listening Feature (MỚI)
+### Version 9 — Grammar Spelling UX (MỚI)
+
+#### Thay đổi chính: Cải tiến UI/UX bài tập Ngữ pháp
+| Tính năng | Mô tả |
+|---|---|
+| **Giao diện Điền khuyết** | Đổi bài tự luận thành dạng ô trống (Fill-in-the-blanks). Trực quan hóa các lựa chọn tương đương (cách nhau bởi `/`) và giữ thiết kế trực quan. |
+| **Smart Hints** | Hệ thống tự động mở khóa (hint) ngẫu nhiên `Math.ceil(tổng số từ / 4)` ô để làm gợi ý cho người học. |
+| **Keyboard UX** | Tự động nhảy ô khi gõ xong. Hỗ trợ điều hướng qua lại bằng phím Space và Backspace mượt mà giữa các ô trống. Ô text tự động co giãn kích thước theo nội dung. |
+
+### Version 8 — Miss Listening Feature
 
 #### Thay đổi chính: Listening Vocabulary Management & Practice
 | Tính năng | Mô tả |
 |---|---|
-| **Listening Save** | Thêm nút quick-save chuyên dụng "🎧 Listening" bên cạnh "⚡ Quick Save" trong lúc chép chính tả, tự động cào link phát âm tiếng Anh chuẩn từ Oxford qua tên từ vựng. |
-| **Quản lý "Miss Listening"** | Giao diện riêng biệt cho Vocabulary dạng Listening, tách biệt với từ vựng học full 4 kỹ năng. |
+| **Listening Save** | Thêm nút quick-save chuyên dụng "🎧 Listening" bên cạnh "⚡ Quick Save" trong lúc chép chính tả. Cập nhật logic để quét toàn bộ các page của 1 từ trên Oxford (word_1, word_2...) để lấy thông tin phát âm của tất cả các loại từ (noun, verb,...). |
+| **Quản lý "Miss Listening"** | Giao diện riêng biệt cho Vocabulary dạng Listening, tách biệt với từ vựng học full 4 kỹ năng. Có thể nghe tất cả các giọng đọc của một từ ngay trên giao diện danh sách. |
 | **Audio-only Practice (SM-2)** | Cơ chế Practice mới: Phát voice và bắt điền từ đúng (cho phép tối đa 5 lần làm, hỗ trợ báo lỗi theo từng ký tự, lần đầu đúng 5đ, giảm dần tới lần thứ 5 là 1đ, hết 5 lần sai nhận 0đ). Quản lý lịch ôn tập qua hệ thống SM-2 Spaced Repetition. |
 
 ### Version 7 — Grammar Feature (Cũ)
@@ -191,7 +200,7 @@ Audio → WhisperX (Pyannote VAD + Whisper transcribe + Forced Alignment) → Se
 **Ưu điểm**: Mỗi segment là một câu hoàn chỉnh. Config đơn giản. Transcript chính xác hơn.
 
 #### Quick-Save Vocabulary (Mới)
-- Click vào từ trong bài dictation → popup hiện **"⚡ Quick Save"** và **"📝 Details"**.
+- Click vào từ trong bài dictation → popup hiện **"⚡ Quick Save"** và **"🎧 Listening"**.
 - Quick Save lưu từ ngay lập tức mà không cần mở form → không ngắt quãng quá trình chép.
 - Từ quick-save chưa có definition sẽ **không vào SM-2** — hoàn thành sau trong mục Vocabulary.
 

@@ -23,6 +23,7 @@ export default function Exercise({
     const [selectedWord, setSelectedWord] = useState(null);
     const [showVocab, setShowVocab] = useState(false);
     const [wordPopup, setWordPopup] = useState(null);
+    const [listeningEdit, setListeningEdit] = useState(null);
     const [quickSaved, setQuickSaved] = useState({});
     const [hint, setHint] = useState(null);
     const [currentTime, setCurrentTime] = useState(0);
@@ -278,6 +279,7 @@ export default function Exercise({
         if (!clean) return;
         const rect = e.target.getBoundingClientRect();
         setSelectedWord(clean);
+        setListeningEdit(null);
         setWordPopup({ word: clean, x: rect.left, y: rect.bottom + 4 });
     };
 
@@ -297,16 +299,21 @@ export default function Exercise({
         setWordPopup(null);
     };
 
-    const handleListeningSave = async (word) => {
+    const confirmListeningSave = async () => {
+        if (!listeningEdit?.word.trim()) return;
+        const targetWord = listeningEdit.word.trim();
+        setListeningEdit({ ...listeningEdit, loading: true });
         try {
-            const oxfordUrl = `https://www.oxfordlearnersdictionaries.com/definition/english/${word.toLowerCase()}`;
+            const oxfordUrl = `https://www.oxfordlearnersdictionaries.com/definition/english/${targetWord.toLowerCase()}`;
             const data = await scrapeListeningVocab(oxfordUrl);
-            await saveListeningVocab(word, data.audio_url || "");
-            setQuickSaved((prev) => ({ ...prev, [word]: "listening" }));
+            await saveListeningVocab(targetWord, JSON.stringify(data.audios || []));
+            setQuickSaved((prev) => ({ ...prev, [wordPopup.word]: "listening" }));
             setWordPopup(null);
-            setTimeout(() => setQuickSaved((prev) => { const n = { ...prev }; delete n[word]; return n; }), 2000);
+            setListeningEdit(null);
+            setTimeout(() => setQuickSaved((prev) => { const n = { ...prev }; delete n[wordPopup.word]; return n; }), 2000);
         } catch (err) {
             alert("Listening save failed: " + err.message);
+            setListeningEdit({ ...listeningEdit, loading: false });
         }
     };
 
@@ -527,27 +534,46 @@ export default function Exercise({
                 <>
                     <div className="fixed inset-0 z-40" onClick={() => setWordPopup(null)} />
                     <div
-                        className="fixed z-50 bg-white rounded-xl shadow-2xl border border-slate-200 p-2 animate-fade-in flex gap-1.5"
+                        className="fixed z-50 bg-white rounded-xl shadow-2xl border border-slate-200 p-2 animate-fade-in"
                         style={{ left: Math.min(wordPopup.x, window.innerWidth - 220), top: wordPopup.y }}
                     >
-                        <button
-                            onClick={() => handleQuickSave(wordPopup.word)}
-                            className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-emerald-50 text-emerald-600 hover:bg-emerald-100 transition-all cursor-pointer whitespace-nowrap"
-                        >
-                            ⚡ Quick Save
-                        </button>
-                        <button
-                            onClick={() => handleListeningSave(wordPopup.word)}
-                            className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-orange-50 text-orange-600 hover:bg-orange-100 transition-all cursor-pointer whitespace-nowrap"
-                        >
-                            🎧 Listening
-                        </button>
-                        <button
-                            onClick={handleFullEdit}
-                            className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-indigo-50 text-indigo-600 hover:bg-indigo-100 transition-all cursor-pointer whitespace-nowrap"
-                        >
-                            📝 Details
-                        </button>
+                        {listeningEdit ? (
+                            <div className="flex flex-col gap-2 p-1">
+                                <label className="text-[10px] text-slate-500 font-semibold uppercase tracking-wider">Base Word (for Oxford):</label>
+                                <div className="flex gap-1.5">
+                                    <input 
+                                        autoFocus
+                                        value={listeningEdit.word}
+                                        onChange={e => setListeningEdit({ ...listeningEdit, word: e.target.value })}
+                                        className="w-32 px-2 py-1.5 text-sm border border-orange-200 rounded-lg outline-none focus:border-orange-400 font-medium text-slate-700"
+                                        onKeyDown={e => { if (e.key === 'Enter') confirmListeningSave(); }}
+                                        disabled={listeningEdit.loading}
+                                    />
+                                    <button 
+                                        onClick={confirmListeningSave}
+                                        disabled={listeningEdit.loading || !listeningEdit.word.trim()}
+                                        className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-orange-500 text-white hover:bg-orange-600 disabled:opacity-50 transition-all cursor-pointer"
+                                    >
+                                        {listeningEdit.loading ? "..." : "Save"}
+                                    </button>
+                                </div>
+                            </div>
+                        ) : (
+                            <div className="flex gap-1.5">
+                                <button
+                                    onClick={() => handleQuickSave(wordPopup.word)}
+                                    className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-emerald-50 text-emerald-600 hover:bg-emerald-100 transition-all cursor-pointer whitespace-nowrap"
+                                >
+                                    ⚡ Quick Save
+                                </button>
+                                <button
+                                    onClick={() => setListeningEdit({ word: wordPopup.word, loading: false })}
+                                    className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-orange-50 text-orange-600 hover:bg-orange-100 transition-all cursor-pointer whitespace-nowrap"
+                                >
+                                    🎧 Listening
+                                </button>
+                            </div>
+                        )}
                     </div>
                 </>
             )}

@@ -54,8 +54,9 @@ def api_delete_listening_vocab(lv_id: int):
 
 @router.post("/scrape")
 def api_scrape_listening_vocab(req: ScrapeRequest):
-    """Scrape audio URL from Oxford Learners Dictionary page."""
+    """Scrape audio URL from Oxford Learners Dictionary page, including multiple POS."""
     import requests
+    import re
     from bs4 import BeautifulSoup
 
     headers = {"User-Agent": "Mozilla/5.0"}
@@ -65,20 +66,62 @@ def api_scrape_listening_vocab(req: ScrapeRequest):
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Failed to fetch URL: {e}")
 
+    def extract_data(soup):
+        # Find POS
+        pos_elem = soup.find("span", class_="pos")
+        pos = pos_elem.text if pos_elem else "unknown"
+        
+        # Find Audio
+        audio_div = soup.find("div", class_="sound audio_play_button pron-us icon-audio")
+        if not audio_div:
+            audio_div = soup.find("div", class_="sound audio_play_button icon-audio")
+            
+        audio_url = None
+        if audio_div:
+            audio_url = audio_div.get("data-src-mp3") or audio_div.get("data-src-ogg")
+            
+        return pos, audio_url
+
+    results = []
+    
+    # Parse first page
     soup = BeautifulSoup(response.text, "html.parser")
+    pos, au = extract_data(soup)
+    if au:
+        results.append({"pos": pos, "audio_url": au})
+        
+    # Check for subsequent pages (e.g. _2, _3)
+    current_url = response.url
+    match = re.search(r'_(\d+)$', current_url)
+    if match:
+        base_url = current_url[:match.start()]
+        next_idx = int(match.group(1)) + 1
+    else:
+        # Sometimes it might not redirect to _1 but still have a _2? Unlikely for Oxford, but let's be safe
+        base_url = current_url
+        next_idx = 2
 
-    # Try US audio first
-    audio_div = soup.find("div", class_="sound audio_play_button pron-us icon-audio")
-    if not audio_div:
-        audio_div = soup.find("div", class_="sound audio_play_button icon-audio")
+    # Loop to get _2, _3, etc.
+    while True:
+        next_url = f"{base_url}_{next_idx}"
+        try:
+            r2 = requests.get(next_url, headers=headers, timeout=5)
+            if r2.status_code != 200:
+                break
+            
+            s2 = BeautifulSoup(r2.text, "html.parser")
+            # If the page doesn't have a headword, it might be a generic 404 or redirect page
+            if not s2.find(class_="headword"):
+                break
+                
+            p2, au2 = extract_data(s2)
+            if au2:
+                results.append({"pos": p2, "audio_url": au2})
+            next_idx += 1
+        except Exception:
+            break
 
-    mp3_url = None
-    if audio_div:
-        mp3_url = audio_div.get("data-src-mp3")
-        if not mp3_url:
-            mp3_url = audio_div.get("data-src-ogg")
-
-    return {"audio_url": mp3_url}
+    return {"audios": results}
 
 
 @router.get("/practice")
