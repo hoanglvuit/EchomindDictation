@@ -1,9 +1,9 @@
 import { useState, useRef, useEffect } from "react";
 
 const parseStructure = (structure) => {
-    let text = structure.toLowerCase();
+    let text = structure;
     text = text.replace(/\s*\/\s*/g, "/");
-    text = text.replace(/[^a-z0-9\s/]/g, " ");
+    text = text.replace(/[^a-zA-Z0-9\s/]/g, " ");
     const chunks = text.trim().split(/\s+/).filter(Boolean);
     
     const groups = [];
@@ -76,7 +76,7 @@ export default function GrammarSpellingQuestion({ item, onAnswer }) {
     const isCorrectAnswer = (currentInputs, parsed) => {
         let globalIdx = 0;
         for (let group of parsed.groups) {
-            const expectedParts = [...group.words].sort();
+            const expectedParts = [...group.words].map(s => s.toLowerCase()).sort();
             const userParts = currentInputs.slice(globalIdx, globalIdx + group.words.length).map(s => s.trim().toLowerCase()).sort();
             
             for (let i = 0; i < expectedParts.length; i++) {
@@ -154,7 +154,6 @@ export default function GrammarSpellingQuestion({ item, onAnswer }) {
 
     return (
         <div className="animate-fade-in space-y-5">
-            {/* Question */}
             <div className="p-4 rounded-xl bg-teal-50/80 border border-teal-100">
                 <div className="text-xs text-teal-400 font-medium mb-1">
                     ✏️ Fill in the correct grammar structure:
@@ -164,13 +163,6 @@ export default function GrammarSpellingQuestion({ item, onAnswer }) {
                         Meaning: {item.meaning}
                     </div>
                 </div>
-                {item.hint && (
-                    <div className="text-center p-3 bg-white rounded border border-teal-200 shadow-sm">
-                        <span className="font-mono text-lg font-bold tracking-widest text-teal-600">
-                            {item.hint}
-                        </span>
-                    </div>
-                )}
             </div>
 
             {/* Input Groups */}
@@ -188,26 +180,30 @@ export default function GrammarSpellingQuestion({ item, onAnswer }) {
                             
                             return (
                                 <div key={globalIdx} className="flex items-center">
-                                    <input
-                                        ref={el => inputRefs.current[globalIdx] = el}
-                                        type="text"
-                                        value={val}
-                                        onChange={(e) => handleChange(globalIdx, e.target.value)}
-                                        onKeyDown={(e) => handleKeyDown(e, globalIdx)}
-                                        disabled={resolved || isHint}
-                                        style={widthStyle}
-                                        className={`px-3 py-2 text-center font-semibold text-lg rounded-lg border transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-teal-400
-                                            ${isHint 
-                                                ? "bg-slate-200 border-slate-300 text-slate-500 font-bold" 
-                                                : resolved && attempts === 0
-                                                    ? "bg-emerald-50 border-emerald-400 text-emerald-700"
-                                                    : resolved
-                                                        ? "bg-rose-50 border-rose-400 text-rose-700"
-                                                        : "bg-white border-slate-300 text-slate-800 hover:border-teal-300 shadow-sm"
-                                            }`}
-                                        autoComplete="off"
-                                        spellCheck="false"
-                                    />
+                                    {isHint ? (
+                                        <span className="px-3 py-2 text-center font-bold text-lg text-slate-700 select-none">
+                                            {parsedData.flatExpected[globalIdx]}
+                                        </span>
+                                    ) : (
+                                        <input
+                                            ref={el => inputRefs.current[globalIdx] = el}
+                                            type="text"
+                                            value={val}
+                                            onChange={(e) => handleChange(globalIdx, e.target.value)}
+                                            onKeyDown={(e) => handleKeyDown(e, globalIdx)}
+                                            disabled={resolved}
+                                            style={widthStyle}
+                                            className={`px-3 py-2 text-center font-semibold text-lg rounded-lg border transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-teal-400
+                                                ${resolved && attempts === 0
+                                                        ? "bg-emerald-50 border-emerald-400 text-emerald-700"
+                                                        : resolved
+                                                            ? "bg-rose-50 border-rose-400 text-rose-700"
+                                                            : "bg-white border-slate-300 text-slate-800 hover:border-teal-300 shadow-sm"
+                                                }`}
+                                            autoComplete="off"
+                                            spellCheck="false"
+                                        />
+                                    )}
                                     {idxInGroup < group.inputs.length - 1 && (
                                         <span className="mx-2 text-indigo-400 font-bold text-lg select-none">/</span>
                                     )}

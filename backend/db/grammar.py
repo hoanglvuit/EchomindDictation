@@ -76,24 +76,6 @@ def delete_grammar(grammar_id: int) -> bool:
         return cur.rowcount > 0
 
 
-def _create_spelling_hint(structure: str) -> str:
-    """
-    Generate a hint for grammar spelling questions.
-    Mask ~50% of characters in each word with underscores.
-    """
-    words = structure.split()
-    hints = []
-    for w in words:
-        chars = list(w)
-        indices = list(range(len(chars)))
-        random.shuffle(indices)
-        hide_count = max(1, len(chars) // 2)
-        for i in indices[:hide_count]:
-            if chars[i].isalpha():
-                chars[i] = "_"
-        hints.append("".join(chars))
-    return " ".join(hints)
-
 
 def get_due_grammar(today_str: str) -> list[dict]:
     """
@@ -127,7 +109,6 @@ def get_due_grammar(today_str: str) -> list[dict]:
                 ).fetchall()
                 if len(distractors) < 3:
                     g["quiz_type"] = "spelling"
-                    g["hint"] = _create_spelling_hint(g["structure"])
                 else:
                     options = [{"structure": g["structure"], "correct": True}]
                     for d_row in distractors:
@@ -138,7 +119,6 @@ def get_due_grammar(today_str: str) -> list[dict]:
                     g["options"] = options
             else:
                 g["quiz_type"] = "spelling"
-                g["hint"] = _create_spelling_hint(g["structure"])
 
             result.append(g)
 
