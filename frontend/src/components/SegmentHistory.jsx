@@ -1,4 +1,4 @@
-import React from "react";
+
 
 export default function SegmentHistory({
     allSegments,
@@ -13,7 +13,7 @@ export default function SegmentHistory({
     }
 
     return (
-        <React.Fragment>
+        <>
             {/* Background History - Left Side */}
             <div className="fixed right-[calc(50%+345px)] top-32 bottom-24 w-[550px] hidden lg:block overflow-y-auto scrollbar-hide text-right">
                 <div className="flex flex-col gap-16 py-6">
@@ -57,6 +57,6 @@ export default function SegmentHistory({
                     ))}
                 </div>
             </div>
-        </React.Fragment>
+        </>
     );
 }

@@ -1,17 +1,8 @@
 import { useState, useEffect, useCallback } from "react";
 import { listListeningVocab, deleteListeningVocab, saveListeningVocab, scrapeListeningVocab } from "../api";
+import { parseAudios } from "../utils/audioUtils";
 
 export default function ListeningVocabList({ onBack, onPractice }) {
-    const parseAudios = (audioStr) => {
-        if (!audioStr) return [];
-        try {
-            const parsed = JSON.parse(audioStr);
-            if (Array.isArray(parsed)) return parsed;
-            return [{ pos: '', audio_url: audioStr }];
-        } catch {
-            return [{ pos: '', audio_url: audioStr }];
-        }
-    };
     const [items, setItems] = useState([]);
     const [loading, setLoading] = useState(true);
     const [showAdd, setShowAdd] = useState(false);

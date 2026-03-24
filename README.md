@@ -85,13 +85,28 @@ Khi bạn upload một file âm thanh, hệ thống sẽ:
 ```text
 english-listening/
 ├── backend/
-│   ├── app.py              # Entry point của FastAPI server & các API endpoints
-│   ├── database.py         # Lớp xử lý SQLite và thuật toán SM-2
+│   ├── app.py              # Entry point của FastAPI server
 │   ├── asr_engine.py       # Engine xử lý WhisperX transcription & segmentation
+│   ├── db/                 # Database package (tách module)
+│   │   ├── __init__.py     # Re-export tất cả public functions
+│   │   ├── connection.py   # Kết nối SQLite, schema, migrations
+│   │   ├── sm2.py          # Thuật toán SM-2 dùng chung
+│   │   ├── lessons.py      # CRUD bài học & phân đoạn
+│   │   ├── vocab.py        # CRUD từ vựng & SM-2
+│   │   ├── grammar.py      # CRUD ngữ pháp & SM-2
+│   │   └── listening_vocab.py # CRUD từ vựng nghe & SM-2
+│   ├── routers/            # API route modules
+│   │   ├── sessions.py     # Upload, quản lý session
+│   │   ├── evaluation.py   # Kiểm tra dictation
+│   │   ├── vocab.py        # API từ vựng
+│   │   ├── grammar.py      # API ngữ pháp
+│   │   └── listening_vocab.py # API từ vựng nghe
+│   ├── requirements.txt    # Dependencies Python
 │   └── sessions/           # Lưu trữ các tệp âm thanh đã phân đoạn
 ├── frontend/
 │   ├── src/
 │   │   ├── components/     # Các UI Components (Exercise, Vocab,...)
+│   │   ├── utils/          # Shared utilities (audioUtils,...)
 │   │   ├── api.js          # Các hàm gọi API backend
 │   │   └── App.jsx         # Component gốc của ứng dụng
 │   └── index.html
@@ -131,6 +146,7 @@ english-listening/
 ---
 
 ## 📋 Changelog
+
 
 ### Version 9 — Grammar Spelling UX (MỚI)
 

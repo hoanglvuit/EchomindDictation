@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { getListeningPractice, submitListeningPractice } from "../api";
+import { parseAudios } from "../utils/audioUtils";
 
 export default function ListeningPractice({ onBack }) {
     const [items, setItems] = useState([]);
@@ -39,16 +40,7 @@ export default function ListeningPractice({ onBack }) {
 
     useEffect(() => { fetchPractice(); }, [fetchPractice]);
 
-    const parseAudios = (audioStr) => {
-        if (!audioStr) return [];
-        try {
-            const parsed = JSON.parse(audioStr);
-            if (Array.isArray(parsed)) return parsed.filter(a => a.audio_url);
-            return [{ pos: '', audio_url: audioStr }];
-        } catch {
-            return [{ pos: '', audio_url: audioStr }];
-        }
-    };
+
 
     const playAudio = useCallback((specificUrl = null) => {
         const current = items[currentIdx];

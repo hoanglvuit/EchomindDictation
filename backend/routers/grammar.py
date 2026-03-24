@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
-from database import (
+from db import (
     save_grammar, list_grammar, delete_grammar, update_grammar,
     get_due_grammar, update_grammar_sm2
 )

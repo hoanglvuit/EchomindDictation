@@ -3,7 +3,7 @@ from fastapi.responses import FileResponse
 import os
 import re
 from pydantic import BaseModel
-from database import (
+from db import (
     get_lesson_by_name,
     create_lesson,
     list_lessons,

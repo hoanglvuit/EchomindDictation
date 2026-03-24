@@ -47,10 +47,7 @@ def process_audio(file_path, session_dir):
 
     Returns list of segment dicts compatible with add_segments().
     """
-    # 1. Load audio (WhisperX returns 16kHz mono float32)
-    waveform = whisperx.load_audio(file_path)
-
-    # 2. WhisperX transcription
+    # 1. WhisperX transcription
     print(f"  Loading WhisperX model ({WHISPERX_MODEL})...")
     vad_options = {
         "vad_onset": VAD_ONSET,
@@ -113,10 +110,10 @@ def process_audio(file_path, session_dir):
 
         # Cut audio with pre/post buffer
         buf_start = max(0, start_sec - PAD_ONSET)
-        buf_end = min(len(waveform) / SAMPLE_RATE, end_sec + PAD_OFFSET)
+        buf_end = min(len(audio) / SAMPLE_RATE, end_sec + PAD_OFFSET)
         start_sample = int(buf_start * SAMPLE_RATE)
         end_sample = int(buf_end * SAMPLE_RATE)
-        audio_chunk = waveform[start_sample:end_sample]
+        audio_chunk = audio[start_sample:end_sample]
 
         seg_idx = len(segments)
         wav_name = f"{seg_idx:04d}.wav"

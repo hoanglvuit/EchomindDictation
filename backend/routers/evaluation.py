@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 import re
-from database import get_segment_transcript
+from db import get_segment_transcript
 
 router = APIRouter()
 

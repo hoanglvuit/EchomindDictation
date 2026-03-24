@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
-from database import (
+from db import (
     save_listening_vocab, list_listening_vocab, delete_listening_vocab,
     update_listening_vocab, get_due_listening_vocab, update_listening_vocab_sm2
 )
