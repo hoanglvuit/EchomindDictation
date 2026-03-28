@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import WordDetailCard from "./WordDetailCard";
 
-export default function SpellingQuestion({ item, onAnswer, onEdit }) {
+export default function SpellingQuestion({ item, onAnswer, onEdit, onDelete }) {
     const [userInput, setUserInput] = useState("");
     const [attempts, setAttempts] = useState(0);
     const [resolved, setResolved] = useState(false);
@@ -211,7 +211,7 @@ export default function SpellingQuestion({ item, onAnswer, onEdit }) {
 
             {/* Full word details after resolution */}
             {resolved && (
-                <WordDetailCard item={item} onEdit={onEdit} />
+                <WordDetailCard item={item} onEdit={onEdit} onDelete={onDelete} />
             )}
         </div>
     );

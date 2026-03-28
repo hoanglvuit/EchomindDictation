@@ -2,7 +2,7 @@
  * WordDetailCard — shows word info after quiz resolution.
  * Shared between MCQQuestion and SpellingQuestion.
  */
-export default function WordDetailCard({ item, onEdit }) {
+export default function WordDetailCard({ item, onEdit, onDelete }) {
     return (
         <div className="p-4 rounded-xl bg-indigo-50/60 border border-indigo-100 animate-fade-in">
             <div className="flex items-center gap-3 mb-1">
@@ -24,6 +24,15 @@ export default function WordDetailCard({ item, onEdit }) {
                         title="Edit"
                     >
                         ✎
+                    </button>
+                )}
+                {onDelete && (
+                    <button
+                        onClick={onDelete}
+                        className="w-8 h-8 rounded-lg text-slate-400 hover:text-rose-500 hover:bg-rose-100 flex items-center justify-center transition-all cursor-pointer text-sm"
+                        title="Delete"
+                    >
+                        🗑️
                     </button>
                 )}
                 {item.pronunciation && (

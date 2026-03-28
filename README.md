@@ -72,11 +72,11 @@ Khi bạn upload một file âm thanh, hệ thống sẽ:
 - **Bài tập Trắc nghiệm (MCQ)**: Dành cho các cấu trúc mới làm quen, chọn cấu trúc dựa trên ý nghĩa.
 - **Bài tập Điền khuyết (Spelling Fill-in-the-blanks)**: Giao diện điền ô vuông tách biệt cho từng từ. Tự động nhóm các từ thay thế (cách nhau bởi dấu `/`) để dễ nhận biết. Hệ thống tự động điền sẵn (hint) ngẫu nhiên 1/4 số ô để gợi ý định dạng cấu trúc, hỗ trợ Auto-focus mượt mà bằng phím Space/Backspace.
 
-### 5. Từ vựng luyện Nghe - "Miss Listening" (MỚI v8)
+### 5. Từ vựng luyện Nghe - "Miss Listening" (MỚI v8, Update v10)
 - Hỗ trợ lưu trữ nhanh các từ vựng "quen mặt nhưng lạ tai" (nhìn biết nghĩa nhưng nghe không nhận ra).
-- **Listening Save**: Trong màn hình luyện nghe, click vào từ sẽ hiện popup với nút "🎧 Listening". Chức năng này sẽ tự động dò tìm web Oxford và cào **toàn bộ** các cách phát âm của từ đó (như danh từ, động từ, tính từ) để lưu lại một cách tự động.
+- **Listening Save**: Trong màn hình luyện nghe, click vào từ sẽ hiện popup với nút "🎧 Listening". Chức năng này sẽ tự động dò tìm web **Cambridge Dictionary** và cào **toàn bộ** các cách phát âm của từ đó (như danh từ, động từ, tính từ) để lưu lại một cách tự động. Các kết quả trùng lặp được lọc sạch sẽ.
 - **Quản lý riêng biệt**: Trang quản lý từ vựng nghe độc lập, giúp tập trung vào mục tiêu duy nhất: nhận diện âm thanh. Mỗi từ vựng có thể hiện nhiều nút loa (tương ứng với các loại từ khác nhau).
-- **Luyện tập bằng Audio**: Kiểm tra hoàn toàn bằng cách nghe phát âm và tự gõ lại từ (Spelling). Có chế độ tự động phát ngẫu nhiên một trong các cách đọc của từ. Cung cấp tối đa 5 lần thử sai với số điểm giảm dần (5 điểm -> 1 điểm) và hệ thống gợi ý từng chữ cái trực quan. Tích hợp thuật toán SM-2 để lên lịch ôn tập.
+- **Luyện tập bằng Audio**: Kiểm tra hoàn toàn bằng cách nghe phát âm và tự gõ lại từ (Spelling). Có chế độ tự động phát ngẫu nhiên một trong các cách đọc của từ. Cung cấp tối đa 5 lần thử sai với số điểm giảm dần (5 điểm -> 1 điểm) và hệ thống gợi ý từng chữ cái trực quan. Tích hợp thuật toán SM-2 để lên lịch ôn tập. Bổ sung tính năng **Delete** trực tiếp trong lúc kiểm tra (v10) giúp dễ dàng quản lý loại bỏ từ vựng không cần thiết ngay bề mặt học.
 
 ---
 
@@ -148,7 +148,15 @@ english-listening/
 ## 📋 Changelog
 
 
-### Version 9 — Grammar Spelling UX (MỚI)
+### Version 10 — Practice Experience & Scraper Optimization (MỚI)
+
+#### Thay đổi chính: Cải tiến Practice UI & Scraping Logic
+| Tính năng | Mô tả |
+|---|---|
+| **Delete Trong Practice** | Bổ sung nút 🗑️ Delete ngay trên thẻ từ vựng sau khi trả lời xong câu hỏi ôn tập (cho cả mục Vocab và Listening Vocab). Giúp dễ dàng xóa bỏ các từ vựng không còn nhu cầu học mà không cần quay lại danh sách. |
+| **Cambridge Scraper** | Tính năng tự động lấy link audio của "Listening Vocab" chuyển sang cào dữ liệu từ điển Cambridge. Cải thiện khả năng bắt toàn bộ các mẫu phát âm (âm Anh-Anh, Anh-Mỹ) cho tất cả các loại từ (noun, verb, adjective,...) và tự động bỏ qua các URL bị lặp lại giúp hệ thống lưu trữ gọn gàng hơn. |
+
+### Version 9 — Grammar Spelling UX
 
 #### Thay đổi chính: Cải tiến UI/UX bài tập Ngữ pháp
 | Tính năng | Mô tả |

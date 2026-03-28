@@ -1,7 +1,7 @@
 import { useState } from "react";
 import WordDetailCard from "./WordDetailCard";
 
-export default function MCQQuestion({ item, onAnswer, onEdit }) {
+export default function MCQQuestion({ item, onAnswer, onEdit, onDelete }) {
     const [selected, setSelected] = useState(null);
     const [attempts, setAttempts] = useState(0);
     const [resolved, setResolved] = useState(false);
@@ -133,7 +133,7 @@ export default function MCQQuestion({ item, onAnswer, onEdit }) {
 
             {/* Full word details after resolution */}
             {resolved && (
-                <WordDetailCard item={item} onEdit={onEdit} />
+                <WordDetailCard item={item} onEdit={onEdit} onDelete={onDelete} />
             )}
         </div>
     );

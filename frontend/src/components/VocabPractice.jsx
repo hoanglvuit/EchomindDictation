@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { getVocabPractice, submitVocabPractice } from "../api";
+import { getVocabPractice, submitVocabPractice, deleteVocab } from "../api";
 import MCQQuestion from "./MCQQuestion";
 import SpellingQuestion from "./SpellingQuestion";
 import VocabForm from "./VocabForm";
@@ -59,6 +59,26 @@ export default function VocabPractice({ onBack }) {
         ]);
 
         setWaitingNext(true);
+    };
+
+    const handleDeleteVocab = async (vocabId) => {
+        if (!confirm("Delete this vocabulary permanently?")) return;
+        try {
+            await deleteVocab(vocabId);
+            
+            const newItems = items.filter(v => v.id !== vocabId);
+            setItems(newItems);
+            
+            // Remove from results if already recorded
+            setResults(prev => prev.filter(r => r.word !== current.word));
+
+            setWaitingNext(false);
+            if (currentIdx >= newItems.length) {
+                setFinished(true);
+            }
+        } catch (err) {
+            alert("Failed to delete: " + err.message);
+        }
     };
 
     const goNext = () => {
@@ -222,9 +242,9 @@ export default function VocabPractice({ onBack }) {
                 {current && (
                     <div key={`${current.id}-${currentIdx}`}>
                         {current.quiz_type === "mcq" ? (
-                            <MCQQuestion item={current} onAnswer={handleAnswer} onEdit={() => setEditingVocab(current)} />
+                            <MCQQuestion item={current} onAnswer={handleAnswer} onEdit={() => setEditingVocab(current)} onDelete={() => handleDeleteVocab(current.id)} />
                         ) : (
-                            <SpellingQuestion item={current} onAnswer={handleAnswer} onEdit={() => setEditingVocab(current)} />
+                            <SpellingQuestion item={current} onAnswer={handleAnswer} onEdit={() => setEditingVocab(current)} onDelete={() => handleDeleteVocab(current.id)} />
                         )}
                     </div>
                 )}

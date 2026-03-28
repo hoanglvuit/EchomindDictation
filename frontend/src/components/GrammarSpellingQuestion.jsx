@@ -33,7 +33,7 @@ const parseStructure = (structure) => {
     return { groups, totalWords: globalIndex, flatExpected };
 };
 
-export default function GrammarSpellingQuestion({ item, onAnswer }) {
+export default function GrammarSpellingQuestion({ item, onAnswer, onEdit, onDelete }) {
     const [parsedData, setParsedData] = useState(null);
     const [userInputs, setUserInputs] = useState([]);
     const [hintIndices, setHintIndices] = useState(new Set());
@@ -270,8 +270,25 @@ export default function GrammarSpellingQuestion({ item, onAnswer }) {
 
             {/* Full details after resolution */}
             {resolved && (
-                <div className="p-4 rounded-xl bg-indigo-50/60 border border-indigo-100 animate-fade-in mt-4 shadow-sm">
-                    <div className="flex items-center gap-3 mb-1">
+                <div className="p-4 rounded-xl bg-indigo-50/60 border border-indigo-100 animate-fade-in mt-4 shadow-sm relative group">
+                    <div className="absolute top-3 right-3 flex items-center gap-1 opacity-0 group-hover:opacity-100 lg:opacity-100 transition-opacity">
+                        <button
+                            onClick={onEdit}
+                            className="w-8 h-8 rounded-lg bg-white/60 text-slate-500 hover:bg-white hover:text-indigo-600 shadow-sm flex items-center justify-center transition-all cursor-pointer"
+                            title="Edit"
+                        >
+                            ✎
+                        </button>
+                        <button
+                            onClick={onDelete}
+                            className="w-8 h-8 rounded-lg bg-white/60 text-slate-500 hover:bg-white hover:text-rose-500 shadow-sm flex items-center justify-center transition-all cursor-pointer"
+                            title="Delete"
+                        >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                        </button>
+                    </div>
+
+                    <div className="flex items-center gap-3 mb-1 pr-16">
                         <span className="text-lg font-bold text-indigo-700">{item.structure}</span>
                     </div>
                     {item.meaning && (

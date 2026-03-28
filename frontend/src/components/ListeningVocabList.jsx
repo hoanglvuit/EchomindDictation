@@ -152,13 +152,13 @@ export default function ListeningVocabList({ onBack, onPractice }) {
 
 function AddListeningVocabModal({ onClose, onSaved }) {
     const [word, setWord] = useState("");
-    const [oxfordUrl, setOxfordUrl] = useState("");
+    const [cambridgeUrl, setCambridgeUrl] = useState("");
     const [audios, setAudios] = useState([]); // [{pos, audio_url}]
     const [fetching, setFetching] = useState(false);
     const [saving, setSaving] = useState(false);
 
     const handleFetch = async () => {
-        const url = oxfordUrl || `https://www.oxfordlearnersdictionaries.com/definition/english/${word.toLowerCase()}`;
+        const url = cambridgeUrl || `https://dictionary.cambridge.org/dictionary/english/${word.toLowerCase()}`;
         if (!url) return;
         setFetching(true);
         try {
@@ -209,9 +209,9 @@ function AddListeningVocabModal({ onClose, onSaved }) {
                     </div>
 
                     <div>
-                        <label className="block text-xs text-slate-500 mb-1 font-medium">Oxford URL (optional)</label>
+                        <label className="block text-xs text-slate-500 mb-1 font-medium">Cambridge URL (optional)</label>
                         <div className="flex gap-2">
-                            <input type="text" value={oxfordUrl} onChange={(e) => setOxfordUrl(e.target.value)}
+                            <input type="text" value={cambridgeUrl} onChange={(e) => setCambridgeUrl(e.target.value)}
                                 placeholder="Auto-generates from word if empty..."
                                 className="flex-1 px-3 py-2 rounded-lg bg-white border border-slate-200 text-sm text-slate-700
                                     placeholder:text-slate-300 hover:border-orange-300 transition-all"

@@ -1,7 +1,8 @@
 import { useState, useEffect, useCallback } from "react";
-import { getGrammarPractice, submitGrammarPractice } from "../api";
+import { getGrammarPractice, submitGrammarPractice, deleteGrammar } from "../api";
 import GrammarMCQQuestion from "./GrammarMCQQuestion";
 import GrammarSpellingQuestion from "./GrammarSpellingQuestion";
+import GrammarForm from "./GrammarForm";
 
 export default function GrammarPractice({ onBack }) {
     const [items, setItems] = useState([]);
@@ -10,6 +11,7 @@ export default function GrammarPractice({ onBack }) {
     const [results, setResults] = useState([]);
     const [finished, setFinished] = useState(false);
     const [waitingNext, setWaitingNext] = useState(false);
+    const [editingGrammar, setEditingGrammar] = useState(null);
 
     const fetchPractice = useCallback(async () => {
         try {
@@ -66,9 +68,24 @@ export default function GrammarPractice({ onBack }) {
         }
     };
 
+    const handleDelete = async () => {
+        if (!window.confirm("Delete this grammar structure?")) return;
+        const item = items[currentIdx];
+        try {
+            await deleteGrammar(item.id);
+            setResults((prev) => [
+                ...prev,
+                { structure: item.structure, quality: 0, quiz_type: item.quiz_type, deleted: true }
+            ]);
+            goNext();
+        } catch (err) {
+            alert("Delete failed: " + err.message);
+        }
+    };
+
     useEffect(() => {
         const handler = (e) => {
-            if (e.key === "Enter" && waitingNext) {
+            if (e.key === "Enter" && waitingNext && !editingGrammar) {
                 goNext();
             }
         };
@@ -207,9 +224,19 @@ export default function GrammarPractice({ onBack }) {
                 {current && (
                     <div key={`${current.id}-${currentIdx}`}>
                         {current.quiz_type === "mcq" ? (
-                            <GrammarMCQQuestion item={current} onAnswer={handleAnswer} />
+                            <GrammarMCQQuestion
+                                item={current}
+                                onAnswer={handleAnswer}
+                                onEdit={() => setEditingGrammar(current)}
+                                onDelete={handleDelete}
+                            />
                         ) : (
-                            <GrammarSpellingQuestion item={current} onAnswer={handleAnswer} />
+                            <GrammarSpellingQuestion
+                                item={current}
+                                onAnswer={handleAnswer}
+                                onEdit={() => setEditingGrammar(current)}
+                                onDelete={handleDelete}
+                            />
                         )}
                     </div>
                 )}
@@ -229,6 +256,24 @@ export default function GrammarPractice({ onBack }) {
                     </div>
                 )}
             </div>
+
+            {/* Edit Modal */}
+            {editingGrammar && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm animate-fade-in relative">
+                    <div className="w-full max-w-lg shadow-2xl relative">
+                        <GrammarForm
+                            grammar={editingGrammar}
+                            onClose={() => setEditingGrammar(null)}
+                            onSaved={() => {
+                                setEditingGrammar(null);
+                                // Modifying item in local state so changes reflect slightly,
+                                // but a full refetch of practice resets progress.
+                                // We'll just close for now to let user proceed fluidly.
+                            }}
+                        />
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

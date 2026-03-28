@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from "react";
-import { getListeningPractice, submitListeningPractice } from "../api";
+import { getListeningPractice, submitListeningPractice, deleteListeningVocab } from "../api";
 import { parseAudios } from "../utils/audioUtils";
 
 export default function ListeningPractice({ onBack }) {
@@ -127,6 +127,25 @@ export default function ListeningPractice({ onBack }) {
             } else {
                 setTimeout(() => inputRef.current?.focus(), 100);
             }
+        }
+    };
+
+    const handleDeleteVocab = async (vocabId) => {
+        if (!confirm("Delete this listening vocab permanently?")) return;
+        try {
+            await deleteListeningVocab(vocabId);
+            
+            const newItems = items.filter(v => v.id !== vocabId);
+            setItems(newItems);
+            
+            setResults(prev => prev.filter(r => r.word !== items[currentIdx].word));
+
+            setWaitingNext(false);
+            if (currentIdx >= newItems.length) {
+                setFinished(true);
+            }
+        } catch (err) {
+            alert("Failed to delete: " + err.message);
         }
     };
 
@@ -398,6 +417,18 @@ export default function ListeningPractice({ onBack }) {
                                 {ch}
                             </span>
                         ))}
+                    </div>
+                )}
+
+                {/* Edit (if any) & Delete actions */}
+                {resolved && (
+                    <div className="flex justify-center gap-2 mt-4 animate-fade-in">
+                        <button
+                            onClick={() => handleDeleteVocab(current.id)}
+                            className="px-4 py-2 rounded-xl text-sm font-semibold text-slate-400 border border-slate-200 hover:text-rose-500 hover:border-rose-200 hover:bg-rose-50 transition-all cursor-pointer flex items-center gap-2"
+                        >
+                            <span>🗑️ Delete</span>
+                        </button>
                     </div>
                 )}
 
