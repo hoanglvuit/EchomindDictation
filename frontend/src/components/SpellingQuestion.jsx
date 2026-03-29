@@ -89,7 +89,7 @@ export default function SpellingQuestion({ item, onAnswer, onEdit, onDelete }) {
                 </div>
                 <div className="text-base text-slate-700 leading-relaxed font-medium">
                     {item.general_meaning && (
-                        <div className="mb-2 p-2 rounded bg-white/50 border border-teal-200 text-sm italic text-teal-700">
+                        <div className="mb-2 p-2 rounded bg-white/50 border border-teal-200 text-sm italic text-teal-700 whitespace-pre-wrap">
                             Core Idea: {item.general_meaning}
                         </div>
                     )}

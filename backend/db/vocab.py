@@ -82,7 +82,7 @@ def update_vocab(
             update_fields.append(next_review)
 
         query += " WHERE id = ?"
-        update_fields.append(vocab_id)
+        update_fields.append(vocab_id)  # type: ignore
 
         cur = conn.execute(query, tuple(update_fields))
         if cur.rowcount == 0:
@@ -193,7 +193,7 @@ def get_due_vocab(today_str: str) -> list[dict]:
                 d["definition"] for d in v["definitions"] if d["definition"].strip()
             ]
 
-            if v["repetition"] < 2 and total_vocab >= 4:
+            if not v.get("spelling_unlocked") and v["repetition"] < 2 and total_vocab >= 4:
                 v["quiz_type"] = "mcq"
                 distractors = _get_random_definitions(conn, v["id"], 3)
                 if len(distractors) < 3:
@@ -238,9 +238,17 @@ def update_vocab_sm2(vocab_id: int, quality: int) -> dict | None:
         conn.execute(
             """UPDATE vocab
                SET easiness_factor = ?, repetition = ?,
-                   interval_days = ?, next_review = ?
+                   interval_days = ?, next_review = ?,
+                   spelling_unlocked = ?
                WHERE id = ?""",
-            (new_ef, new_rep, new_interval, new_next_review, vocab_id),
+            (
+                new_ef,
+                new_rep,
+                new_interval,
+                new_next_review,
+                1 if new_rep >= 2 or v.get("spelling_unlocked") else 0,
+                vocab_id,
+            ),
         )
 
         return {

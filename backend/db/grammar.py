@@ -100,7 +100,7 @@ def get_due_grammar(today_str: str) -> list[dict]:
             ).fetchall()
             g["examples"] = [e["example"] for e in exs]
 
-            if g["repetition"] < 2 and total >= 4:
+            if not g.get("spelling_unlocked") and g["repetition"] < 2 and total >= 4:
                 g["quiz_type"] = "mcq"
                 distractors = conn.execute(
                     """SELECT id, structure FROM grammar
@@ -146,9 +146,17 @@ def update_grammar_sm2(grammar_id: int, quality: int) -> dict | None:
         conn.execute(
             """UPDATE grammar
                SET easiness_factor = ?, repetition = ?,
-                   interval_days = ?, next_review = ?
+                   interval_days = ?, next_review = ?,
+                   spelling_unlocked = ?
                WHERE id = ?""",
-            (new_ef, new_rep, new_interval, new_next_review, grammar_id),
+            (
+                new_ef,
+                new_rep,
+                new_interval,
+                new_next_review,
+                1 if new_rep >= 2 or g.get("spelling_unlocked") else 0,
+                grammar_id,
+            ),
         )
 
         return {

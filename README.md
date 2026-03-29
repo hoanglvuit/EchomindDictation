@@ -60,7 +60,7 @@ Khi bạn upload một file âm thanh, hệ thống sẽ:
 - **Hệ thống ôn tập SM-2 đặc biệt**:
     - Từ chưa hoàn thành (chỉ quick-save) sẽ **không vào SM-2** cho đến khi có ít nhất 1 definition.
     - **Giai đoạn Làm quen (Repetition < 2)**: Sử dụng câu hỏi **Trắc nghiệm (MCQ)**.
-    - **Giai đoạn Ghi nhớ (Repetition >= 2)**: Chuyển sang câu hỏi **Tự luận (Spelling)** để rèn luyện Active Recall.
+    - **Giai đoạn Ghi nhớ & Mở khóa (Repetition >= 2)**: Chuyển sang câu hỏi **Tự luận (Spelling)**. Đặc biệt, một khi đã đạt đến giai đoạn này, từ vựng sẽ được "mở khóa tự luận" vĩnh viễn, không bao giờ quay lại trắc nghiệm kể cả khi làm sai (v11).
 - **Phát âm thanh thông minh**: 
     - Nút 🔊 xuất hiện trong danh sách từ vựng.
     - Tự động hiển thị nút phát sau khi trả lời đúng trong lúc ôn tập để củng cố kỹ năng nghe.
@@ -148,7 +148,16 @@ english-listening/
 ## 📋 Changelog
 
 
-### Version 10 — Practice Experience & Scraper Optimization (MỚI)
+### Version 11 — Spaced Repetition Logic & UI Polish (MỚI)
+
+#### Thay đổi chính: Permanent Spelling Unlock & Formatting Fix
+| Tính năng | Mô tả |
+|---|---|
+| **Permanent Spelling Unlock** | Một khi từ vựng hoặc cấu trúc ngữ pháp đạt đến cấp độ Tự luận (`repetition >= 2`), hệ thống sẽ "mở khóa" vĩnh viễn trạng thái này. Dù bạn có làm sai trong tương lai và bị reset điểm SM-2 về 0, hệ thống vẫn sẽ yêu cầu bạn làm bài tập Tự luận thay vì quay lại Trắc nghiệm, giúp duy trì mức độ thử thách cần thiết. |
+| **Whitespaces Preservation** | Cập nhật tất cả các màn hình hiển thị (Word Detail, Practice, MCQ, Spelling) để giữ nguyên định dạng xuống dòng và tab trong các trường "Core Idea" và "Meaning", giúp trình bày nội dung khoa học và dễ hiểu hơn. |
+| **Cambridge Scraper v2** | Tối ưu hóa logic cào dữ liệu từ Cambridge Dictionary, tự động lấy toàn bộ các biến thể phát âm (Noun, Verb, Adj...) và lọc trùng lặp URL âm thanh chính xác tuyệt đối. |
+
+### Version 10 — Practice Experience & Scraper Optimization
 
 #### Thay đổi chính: Cải tiến Practice UI & Scraping Logic
 | Tính năng | Mô tả |

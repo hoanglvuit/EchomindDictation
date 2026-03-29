@@ -135,7 +135,7 @@ export default function VocabList({ onBack, onPractice }) {
                         <button onClick={(e) => { e.stopPropagation(); handleDelete(v.id); }} className="w-7 h-7 rounded-lg text-slate-400 hover:text-rose-400 hover:bg-rose-50 flex items-center justify-center transition-all cursor-pointer text-sm" title="Delete">×</button>
                     </div>
                 </div>
-                {v.general_meaning && <p className="text-sm text-slate-500 font-medium line-clamp-1 italic">{v.general_meaning}</p>}
+                {v.general_meaning && <p className="text-sm text-slate-500 font-medium whitespace-pre-wrap line-clamp-3 italic mt-1">{v.general_meaning}</p>}
             </div>
             {expandedId === v.id && (
                 <div className="mt-3 pt-3 border-t border-slate-200/60 space-y-4 animate-fade-in">
@@ -144,8 +144,8 @@ export default function VocabList({ onBack, onPractice }) {
                             <div key={d.id || i} className="pl-4 border-l-2 border-indigo-200 relative">
                                 <div className="absolute -left-[2px] top-0 bottom-0 w-[2px] bg-indigo-500 rounded-full" />
                                 <div className="flex flex-col gap-1.5">
-                                    {d.definition && <p className="text-sm text-slate-800"><span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mr-2">Meaning:</span>{d.definition}</p>}
-                                    {d.example && <p className="text-sm text-slate-500 italic pl-2 border-l border-slate-200 ml-1">"{d.example}"</p>}
+                                    {d.definition && <p className="text-sm text-slate-800 whitespace-pre-wrap"><span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mr-2">Meaning:</span>{d.definition}</p>}
+                                    {d.example && <p className="text-sm text-slate-500 italic pl-2 border-l border-slate-200 ml-1 whitespace-pre-wrap">"{d.example}"</p>}
                                     {d.patterns && d.patterns.length > 0 && (
                                         <div className="flex flex-wrap gap-1.5 pt-1">
                                             {d.patterns.map((p, pi) => <span key={pi} className="px-1.5 py-0.5 rounded bg-indigo-50 text-indigo-500 text-[10px] font-bold border border-indigo-100 uppercase tracking-tighter">{p}</span>)}

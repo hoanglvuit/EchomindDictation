@@ -159,7 +159,7 @@ export default function GrammarSpellingQuestion({ item, onAnswer, onEdit, onDele
                     ✏️ Fill in the correct grammar structure:
                 </div>
                 <div className="text-base text-slate-700 leading-relaxed font-medium mb-3">
-                    <div className="mb-2 p-2 rounded bg-white/50 border border-teal-200 text-sm italic text-teal-700">
+                    <div className="mb-2 p-2 rounded bg-white/50 border border-teal-200 text-sm italic text-teal-700 whitespace-pre-wrap">
                         Meaning: {item.meaning}
                     </div>
                 </div>
@@ -292,7 +292,7 @@ export default function GrammarSpellingQuestion({ item, onAnswer, onEdit, onDele
                         <span className="text-lg font-bold text-indigo-700">{item.structure}</span>
                     </div>
                     {item.meaning && (
-                        <p className="text-sm text-slate-600 italic mb-3">{item.meaning}</p>
+                        <p className="text-sm text-slate-600 italic mb-3 whitespace-pre-wrap">{item.meaning}</p>
                     )}
                     {item.examples && item.examples.length > 0 && (
                         <div className="space-y-2">

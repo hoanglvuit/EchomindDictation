@@ -40,7 +40,7 @@ export default function WordDetailCard({ item, onEdit, onDelete }) {
                 )}
             </div>
             {item.general_meaning && (
-                <p className="text-sm text-slate-500 italic mb-3">{item.general_meaning}</p>
+                <p className="text-sm text-slate-500 italic mb-3 whitespace-pre-wrap">{item.general_meaning}</p>
             )}
             {item.definitions && item.definitions.length > 0 && (
                 <div className="space-y-2">

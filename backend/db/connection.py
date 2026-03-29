@@ -41,6 +41,7 @@ CREATE TABLE IF NOT EXISTS vocab (
     repetition      INTEGER NOT NULL DEFAULT 0,
     interval_days   INTEGER NOT NULL DEFAULT 0,
     next_review     TEXT NOT NULL DEFAULT '',
+    spelling_unlocked INTEGER NOT NULL DEFAULT 0,
     audio_url       TEXT
 );
 
@@ -60,7 +61,8 @@ CREATE TABLE IF NOT EXISTS grammar (
     easiness_factor REAL NOT NULL DEFAULT 2.5,
     repetition      INTEGER NOT NULL DEFAULT 0,
     interval_days   INTEGER NOT NULL DEFAULT 0,
-    next_review     TEXT NOT NULL DEFAULT ''
+    next_review     TEXT NOT NULL DEFAULT '',
+    spelling_unlocked INTEGER NOT NULL DEFAULT 0
 );
 
 CREATE TABLE IF NOT EXISTS grammar_example (
@@ -90,6 +92,8 @@ MIGRATIONS = [
     "ALTER TABLE vocab ADD COLUMN audio_url TEXT",
     "ALTER TABLE vocab ADD COLUMN general_meaning TEXT NOT NULL DEFAULT ''",
     "ALTER TABLE vocab_definition ADD COLUMN patterns TEXT NOT NULL DEFAULT '[]'",
+    "ALTER TABLE vocab ADD COLUMN spelling_unlocked INTEGER NOT NULL DEFAULT 0",
+    "ALTER TABLE grammar ADD COLUMN spelling_unlocked INTEGER NOT NULL DEFAULT 0",
 ]
 
 
@@ -132,3 +136,6 @@ def init_db():
                )""",
             (today,),
         )
+        # Backfill spelling_unlocked for existing entries
+        conn.execute("UPDATE vocab SET spelling_unlocked = 1 WHERE repetition >= 2")
+        conn.execute("UPDATE grammar SET spelling_unlocked = 1 WHERE repetition >= 2")

@@ -99,7 +99,7 @@ export default function GrammarList({ onBack, onPractice }) {
                         <button onClick={(e) => { e.stopPropagation(); handleDelete(g.id); }} className="w-7 h-7 rounded-lg text-slate-400 hover:text-rose-400 hover:bg-rose-50 flex items-center justify-center transition-all cursor-pointer text-sm" title="Delete">×</button>
                     </div>
                 </div>
-                <p className="text-sm text-slate-500 font-medium line-clamp-1 italic">{g.meaning}</p>
+                <p className="text-sm text-slate-500 font-medium whitespace-pre-wrap line-clamp-3 italic mt-1">{g.meaning}</p>
             </div>
             {expandedId === g.id && (
                 <div className="mt-3 pt-3 border-t border-slate-200/60 space-y-3 animate-fade-in pl-2 border-l-2 border-indigo-200 ml-1">
