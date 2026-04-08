@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from "react";
-import { getSegment, showAnswer, saveProgress, saveVocab, scrapeListeningVocab, saveListeningVocab } from "../api";
-import VocabForm from "./VocabForm";
+import { getSegment, showAnswer, saveProgress, saveVocab, scrapeListeningVocab, saveListeningVocab } from "../../api";
+import VocabForm from "../vocab/VocabForm";
 import AudioControls from "./AudioControls";
 import SegmentHistory from "./SegmentHistory";
 
@@ -304,8 +304,8 @@ export default function Exercise({
         const targetWord = listeningEdit.word.trim();
         setListeningEdit({ ...listeningEdit, loading: true });
         try {
-            const oxfordUrl = `https://www.oxfordlearnersdictionaries.com/definition/english/${targetWord.toLowerCase()}`;
-            const data = await scrapeListeningVocab(oxfordUrl);
+            const cambridgeUrl = `https://dictionary.cambridge.org/dictionary/english/${targetWord.toLowerCase()}`;
+            const data = await scrapeListeningVocab(cambridgeUrl);
             await saveListeningVocab(targetWord, JSON.stringify(data.audios || []));
             setQuickSaved((prev) => ({ ...prev, [wordPopup.word]: "listening" }));
             setWordPopup(null);
@@ -539,7 +539,7 @@ export default function Exercise({
                     >
                         {listeningEdit ? (
                             <div className="flex flex-col gap-2 p-1">
-                                <label className="text-[10px] text-slate-500 font-semibold uppercase tracking-wider">Base Word (for Oxford):</label>
+                                <label className="text-[10px] text-slate-500 font-semibold uppercase tracking-wider">Base Word (for Cambridge):</label>
                                 <div className="flex gap-1.5">
                                     <input 
                                         autoFocus

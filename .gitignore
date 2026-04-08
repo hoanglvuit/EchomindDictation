@@ -1,9 +1,20 @@
-.venv/ 
-.mypy_cache/
+# Python
+.venv/
 __pycache__/
-backend/model/
+*.pyc
+.mypy_cache/
+
+# Backend data (regenerable)
 backend/app.db
+backend/sessions/
+
+# Frontend
 frontend/node_modules/
+frontend/dist/
+
+# Temp
+tmp/
+
+# Audio files
 *.mp3
 *.wav
-app.db

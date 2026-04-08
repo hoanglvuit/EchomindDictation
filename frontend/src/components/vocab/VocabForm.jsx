@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { saveVocab, updateVocab, scrapeVocab } from "../api";
+import { saveVocab, updateVocab, scrapeVocab } from "../../api";
 
 export default function VocabForm({ word: initialWord, vocab, onClose, onSaved }) {
     const [word, setWord] = useState(typeof initialWord === "string" ? initialWord : "");

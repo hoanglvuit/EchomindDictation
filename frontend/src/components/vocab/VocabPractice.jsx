@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { getVocabPractice, submitVocabPractice, deleteVocab } from "../api";
+import { getVocabPractice, submitVocabPractice, deleteVocab } from "../../api";
 import MCQQuestion from "./MCQQuestion";
 import SpellingQuestion from "./SpellingQuestion";
 import VocabForm from "./VocabForm";

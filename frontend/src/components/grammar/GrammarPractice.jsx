@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { getGrammarPractice, submitGrammarPractice, deleteGrammar } from "../api";
+import { getGrammarPractice, submitGrammarPractice, deleteGrammar } from "../../api";
 import GrammarMCQQuestion from "./GrammarMCQQuestion";
 import GrammarSpellingQuestion from "./GrammarSpellingQuestion";
 import GrammarForm from "./GrammarForm";

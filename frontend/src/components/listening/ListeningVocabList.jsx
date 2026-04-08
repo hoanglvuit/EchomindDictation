@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
-import { listListeningVocab, deleteListeningVocab, saveListeningVocab, scrapeListeningVocab } from "../api";
-import { parseAudios } from "../utils/audioUtils";
+import { listListeningVocab, deleteListeningVocab, saveListeningVocab, scrapeListeningVocab } from "../../api";
+import { parseAudios } from "../../utils/audioUtils";
 
 export default function ListeningVocabList({ onBack, onPractice }) {
     const [items, setItems] = useState([]);

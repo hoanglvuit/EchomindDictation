@@ -1,14 +1,14 @@
 import { useState, useEffect, useCallback } from "react";
 import { listSessions } from "./api";
 import HomePage from "./components/HomePage";
-import Exercise from "./components/Exercise";
-import CompletionPage from "./components/CompletionPage";
-import VocabList from "./components/VocabList";
-import VocabPractice from "./components/VocabPractice";
-import GrammarList from "./components/GrammarList";
-import GrammarPractice from "./components/GrammarPractice";
-import ListeningVocabList from "./components/ListeningVocabList";
-import ListeningPractice from "./components/ListeningPractice";
+import Exercise from "./components/dictation/Exercise";
+import CompletionPage from "./components/dictation/CompletionPage";
+import VocabList from "./components/vocab/VocabList";
+import VocabPractice from "./components/vocab/VocabPractice";
+import GrammarList from "./components/grammar/GrammarList";
+import GrammarPractice from "./components/grammar/GrammarPractice";
+import ListeningVocabList from "./components/listening/ListeningVocabList";
+import ListeningPractice from "./components/listening/ListeningPractice";
 
 function App() {
   const [page, setPage] = useState("home"); // home | exercise | complete | vocab | practice | grammar | grammar-practice | listening-vocab | listening-practice

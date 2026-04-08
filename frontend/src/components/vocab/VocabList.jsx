@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { listVocab, deleteVocab, getVocabPractice } from "../api";
+import { listVocab, deleteVocab, getVocabPractice } from "../../api";
 import VocabForm from "./VocabForm";
 
 export default function VocabList({ onBack, onPractice }) {

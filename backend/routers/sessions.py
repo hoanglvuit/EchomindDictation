@@ -2,6 +2,7 @@ from fastapi import APIRouter, UploadFile, File, HTTPException
 from fastapi.responses import FileResponse
 import os
 import re
+import shutil
 from pydantic import BaseModel
 from db import (
     get_lesson_by_name,
@@ -69,7 +70,6 @@ def api_delete_session(session_name: str):
     # Remove files
     session_dir = os.path.join(SESSIONS_DIR, session_name)
     if os.path.isdir(session_dir):
-        import shutil
         try:
             shutil.rmtree(session_dir)
         except Exception as e:

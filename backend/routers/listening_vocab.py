@@ -1,5 +1,8 @@
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
+from datetime import date
+import requests
+from bs4 import BeautifulSoup
 from db import (
     save_listening_vocab, list_listening_vocab, delete_listening_vocab,
     update_listening_vocab, get_due_listening_vocab, update_listening_vocab_sm2
@@ -55,8 +58,6 @@ def api_delete_listening_vocab(lv_id: int):
 @router.post("/scrape")
 def api_scrape_listening_vocab(req: ScrapeRequest):
     """Scrape audio URL from Cambridge Dictionary page, including multiple POS."""
-    import requests
-    from bs4 import BeautifulSoup
 
     headers = {"User-Agent": "Mozilla/5.0"}
     try:
@@ -83,7 +84,7 @@ def api_scrape_listening_vocab(req: ScrapeRequest):
                 
             if source and source.get("src"):
                 src = source.get("src")
-                if src.startswith("/"):
+                if isinstance(src, str) and src.startswith("/"):
                     src = "https://dictionary.cambridge.org" + src
                 
                 # Check duplicates
@@ -97,7 +98,6 @@ def api_scrape_listening_vocab(req: ScrapeRequest):
 
 @router.get("/practice")
 def api_listening_practice():
-    from datetime import date
     today = date.today().isoformat()
     items = get_due_listening_vocab(today)
     return {"items": items, "total": len(items)}

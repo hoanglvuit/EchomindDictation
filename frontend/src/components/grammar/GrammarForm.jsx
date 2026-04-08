@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { saveGrammar, updateGrammar } from "../api";
+import { saveGrammar, updateGrammar } from "../../api";
 
 export default function GrammarForm({ grammar, onClose, onSaved }) {
     const [structure, setStructure] = useState("");

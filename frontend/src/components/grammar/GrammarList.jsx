@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { listGrammar, deleteGrammar, getGrammarPractice } from "../api";
+import { listGrammar, deleteGrammar, getGrammarPractice } from "../../api";
 import GrammarForm from "./GrammarForm";
 
 export default function GrammarList({ onBack, onPractice }) {

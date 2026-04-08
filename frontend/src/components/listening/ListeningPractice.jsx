@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from "react";
-import { getListeningPractice, submitListeningPractice, deleteListeningVocab } from "../api";
-import { parseAudios } from "../utils/audioUtils";
+import { getListeningPractice, submitListeningPractice, deleteListeningVocab } from "../../api";
+import { parseAudios } from "../../utils/audioUtils";
 
 export default function ListeningPractice({ onBack }) {
     const [items, setItems] = useState([]);

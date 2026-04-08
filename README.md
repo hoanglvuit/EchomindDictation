@@ -105,7 +105,29 @@ english-listening/
 │   └── sessions/           # Lưu trữ các tệp âm thanh đã phân đoạn
 ├── frontend/
 │   ├── src/
-│   │   ├── components/     # Các UI Components (Exercise, Vocab,...)
+│   │   ├── components/     # Các UI Components phân nhóm theo feature
+│   │   │   ├── HomePage.jsx           # Trang chủ
+│   │   │   ├── dictation/             # Luyện chép chính tả
+│   │   │   │   ├── Exercise.jsx
+│   │   │   │   ├── AudioControls.jsx
+│   │   │   │   ├── SegmentHistory.jsx
+│   │   │   │   └── CompletionPage.jsx
+│   │   │   ├── vocab/                 # Quản lý từ vựng
+│   │   │   │   ├── VocabList.jsx
+│   │   │   │   ├── VocabForm.jsx
+│   │   │   │   ├── VocabPractice.jsx
+│   │   │   │   ├── MCQQuestion.jsx
+│   │   │   │   ├── SpellingQuestion.jsx
+│   │   │   │   └── WordDetailCard.jsx
+│   │   │   ├── grammar/              # Quản lý ngữ pháp
+│   │   │   │   ├── GrammarList.jsx
+│   │   │   │   ├── GrammarForm.jsx
+│   │   │   │   ├── GrammarPractice.jsx
+│   │   │   │   ├── GrammarMCQQuestion.jsx
+│   │   │   │   └── GrammarSpellingQuestion.jsx
+│   │   │   └── listening/            # Từ vựng luyện nghe
+│   │   │       ├── ListeningVocabList.jsx
+│   │   │       └── ListeningPractice.jsx
 │   │   ├── utils/          # Shared utilities (audioUtils,...)
 │   │   ├── api.js          # Các hàm gọi API backend
 │   │   └── App.jsx         # Component gốc của ứng dụng

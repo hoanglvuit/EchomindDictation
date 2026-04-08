@@ -1,5 +1,6 @@
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
+from datetime import date
 from db import (
     save_grammar, list_grammar, delete_grammar, update_grammar,
     get_due_grammar, update_grammar_sm2
@@ -46,7 +47,6 @@ def api_delete_grammar(grammar_id: int):
 
 @router.get("/practice")
 def api_grammar_practice():
-    from datetime import date
     today = date.today().isoformat()
     items = get_due_grammar(today)
     return {"items": items, "total": len(items)}

@@ -1,5 +1,8 @@
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
+from datetime import date
+import requests
+from bs4 import BeautifulSoup
 from db import (
     save_vocab, list_vocab, delete_vocab, update_vocab,
     get_due_vocab, update_vocab_sm2
@@ -50,8 +53,6 @@ def api_update_vocab(vocab_id: int, req: VocabCreateRequest):
 
 @router.post("/scrape")
 def api_scrape_oxford(req: ScrapeRequest):
-    import requests
-    from bs4 import BeautifulSoup
 
     headers = {"User-Agent": "Mozilla/5.0"}
     try:
@@ -100,7 +101,6 @@ def api_delete_vocab(vocab_id: int):
 
 @router.get("/practice")
 def api_vocab_practice():
-    from datetime import date
     today = date.today().isoformat()
     items = get_due_vocab(today)
     return {"items": items, "total": len(items)}

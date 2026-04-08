@@ -3,9 +3,6 @@ English Listening Dictation — FastAPI Backend
 Models are loaded on-demand and unloaded after processing to save RAM.
 """
 
-
-
-
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
